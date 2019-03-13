@@ -1,5 +1,6 @@
 # redspec
-IRAF based pipeline for single slit spectra reduction
+IRAF based pipeline for single slit spectra reduction.
+Tarraneh picked the name, she wants credit.
 
 ## Usage
 
