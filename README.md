@@ -14,7 +14,7 @@ The pipeline has 5 different scripts to be run separately. You might be able to 
 
 ## 0: Prepare Data
 
-This is the main file you will have to edit depending on what telescope you are using. You can start by making a folder with all the raw data, i.e. `raw_data`, then this script will take those files, read in the headers, generate a logfile for the night, and separate the targets into individual folders. You want to end up with a directory structure that looks like this:
+This is the main file you will have to edit depending on what telescope you are using, some example files are in the `prepare_files` folder. You can start by making a folder with all the raw data, i.e. `raw_data`, then this script will take those files, read in the headers, generate a logfile for the night, and separate the targets into individual folders. You want to end up with a directory structure that looks like this:
 
 ```
 |-- raw_data
