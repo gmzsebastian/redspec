@@ -4,7 +4,7 @@ import glob
 from astropy.table import Table
 import os
 
-def prepare_data(file_directory = 'raw_data/*.fits', crop = False, rotate = False, flip = False):
+def prepare_data(file_directory = 'raw_data/*.fits', crop = False, rotate = False, flip = False, variables = ['DISPERSR', 'FILTER']):
     '''
     Copy the raw science image into directories and rename them to something useful.
     Also crop, rotate, or flip them if specified (not yet implemented)
@@ -22,7 +22,7 @@ def prepare_data(file_directory = 'raw_data/*.fits', crop = False, rotate = Fals
     '''
 
     # Import file names
-    Files = glob.glob(file_directory)
+    Files = sorted(glob.glob(file_directory))
 
     # Make sure there are files
     if len(Files) == 0:
@@ -34,37 +34,95 @@ def prepare_data(file_directory = 'raw_data/*.fits', crop = False, rotate = Fals
         # Open File
         print(Files[i])
         File = fits.open(Files[i])
+        file_kind = File[0].header['GRISM']
 
-        # Get File name
-        filename = Files[i][Files[i].find('/')+1:Files[i].find('.fits')]
+        if file_kind == 'VPH-All':
+            # Get File name
+            filename    = Files[i][Files[i].find('/')+1:Files[i].find('.fits')]
+            full_name   = File[0].header['OBJECT']
 
-        # Get the type of file (arc, flat, object, etc.)
-        file_type = File[0].header['IMAGETYP']
+            # Break the name in two if there are two words
+            name_break  = full_name.find(' ')
+            if name_break != -1:
+                object_name = full_name[:name_break]
+                type_name   = full_name[1+name_break:]
+            else:
+                object_name = full_name
+                type_name   = full_name
 
-        # If it is not an object, copy into the current directory
-        if file_type == 'zero':
-            if len(glob.glob('bias')) == 0:
-                os.system('mkdir bias')
-            os.system('cp %s %s/%s_%s.fits'%(Files[i], 'bias', File[0].header['OBJECT'], filename))
-        elif file_type != 'object':
-            os.system('cp %s %s_%s.fits'%(Files[i], File[0].header['OBJECT'], filename))
-        else:
-            # Print relevant information
-            objecto   = File[0].header['OBJECT']
-            slit      = File[0].header['APERTURE']
-            disperser = File[0].header['DISPERSE']
-            cenwave   = File[0].header['CENWAVE']
-            print('Object \t Slit \t\t Disperser \t Central Wave')
-            print('%s \t %s \t %s \t %s'%(objecto, slit, disperser, cenwave))
-            print('\n')
+            # Get the type of file (arc, flat, object, etc.)
+            try:
+                file_type = File[0].header['IMAGETYP']
+            except:
+                file_type = File[0].header['EXPTYPE']
 
-            directory_name = '%s_%s_%s_%s'%(objecto, slit, disperser, cenwave)
-            # Make directory with relevant information
-            if len(glob.glob(directory_name)) == 0:
-                os.system("mkdir %s"%directory_name)
+            # If the object is a bias frame, copy that inot the bias folder
+            if file_type in ['zero', 'Bias', 'Zero', 'bias']:
+                if len(glob.glob('bias')) == 0:
+                    os.system('mkdir bias')
+                os.system('cp %s %s/%s_%s.fits'%(Files[i], 'bias', object_name, filename))
+            elif file_type in ['object', 'Object']:
+                print_name      = object_name
+                directory_name  = object_name
 
-            # Copy the science file in the directory and rename it to something useful
-            os.system('cp %s %s/%s_%s.fits'%(Files[i], directory_name, File[0].header['OBJECT'], filename))
+                if variables[0] != '':
+                    for k in range(len(variables)):
+                        value            = File[0].header[variables[k]].replace(' ', '')
+                        print_name      += ' \t ' + value
+                        directory_name  += '_' + value
+
+                print(print_name)
+                print('\n')
+
+                # Make directory with relevant information
+                if len(glob.glob(directory_name)) == 0:
+                    os.system("mkdir %s"%directory_name)
+
+                # Copy the science file in the directory and rename it to something useful
+                os.system('cp %s %s/%s_%s.fits'%(Files[i], directory_name, type_name, filename))
+
+            # Once saved, rotate or flip if specified
+            if rotate:
+                # Rotate the Data by 90 degrees. Top will be left
+                if file_type in ['zero', 'Bias', 'Zero', 'bias']:
+                    file_name = '%s/%s_%s.fits'%('bias', type_name, filename)
+                else:
+                    file_name = '%s/%s_%s.fits'%(directory_name, type_name, filename)
+                fits_file = fits.open(file_name)
+                fits_file[0].data = np.rot90(fits_file[0].data)#, k = 1)
+
+                # Modify the bias and data sec variables
+                biassec = fits_file[0].header['BIASSEC']
+                bias_coma = biassec.find(',')
+                one_bias = biassec[1:bias_coma]
+                two_bias = biassec[bias_coma+1:-1]
+                out_bias = '[%s,%s]'%(two_bias, one_bias)
+
+                datasec = fits_file[0].header['DATASEC']
+                data_coma = datasec.find(',')
+                one_data = datasec[1:data_coma]
+                two_data = datasec[data_coma+1:-1]
+                out_data = '[%s,%s]'%(two_data, one_data)
+
+                fits_file.writeto(file_name, overwrite = True)
+                fits.setval(file_name,  'BIASSEC', value='[1:4096,1:1024]')
+                fits.setval(file_name,  'DATASEC', value='[1:4096,1:1024]')
+                fits.setval(file_name, 'DISPAXIS', value='1')
+
+                print('Rotated ' + file_name)
+
+            if crop:
+                # Rotate the Data by 270 degrees. Top will be left
+                if file_type in ['zero', 'Bias', 'Zero', 'bias']:
+                    file_name = '%s/%s_%s.fits'%('bias', type_name, filename)
+                else:
+                    file_name = '%s/%s_%s.fits'%(directory_name, type_name, filename)
+
+                # Crop the data
+                fits_file = fits.open(file_name)
+                fits_file[0].data = fits_file[0].data[343:617,149:4096]
+                fits_file.writeto(file_name, overwrite = True)
+                print('Cropped ' + file_name)
 
 def extract_fits_info(file_directory, variable_names, data_index = 0, return_counts = True):
     '''
@@ -83,7 +141,7 @@ def extract_fits_info(file_directory, variable_names, data_index = 0, return_cou
     '''
 
     # Import file names
-    Files = glob.glob(file_directory)
+    Files = sorted(glob.glob(file_directory))
 
     # Make sure there are files
     if len(Files) == 0:
@@ -142,6 +200,13 @@ def extract_fits_info(file_directory, variable_names, data_index = 0, return_cou
     # Save output table
     file_list.write("Nightlog_%s.txt"%Date0, format='ascii.tab')
 
-extract_fits_info('raw_data/*.fits', ['OBJECT', 'EXPTIME', 'RA', 'DEC', 'DATE-OBS', 'UT', 'AIRMASS', 'APERTURE', 'DISPERSE', 'CENWAVE'])
+def example():
+    '''
+    Example of how to use this script
+    '''
 
-prepare_data()
+    # Create a logfile for the night
+    extract_fits_info('raw_data/*.fits', ['OBJECT', 'EXPTYPE', 'EXPTIME', 'RA', 'DEC', 'DATE-OBS', 'TIME-OBS', 'FILTER', 'GRISM'])
+
+    # Prepare all the data into the right format, with the suffix names specified by variables
+    prepare_data(variables = [''], rotate = True, crop = True)

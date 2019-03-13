@@ -1,4 +1,5 @@
 # redspec
+IRAF based pipeline for single slit spectra reduction
 
 ## Usage
 
