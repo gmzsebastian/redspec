@@ -34,15 +34,16 @@ def prepare_data(file_directory = 'raw_data/*.fits', crop = False, rotate = Fals
         # Open File
         print(Files[i])
         File = fits.open(Files[i])
-        file_kind = File[0].header['GRISM']
+        file_kind = File[0].header['DISPERSR']
+        filter_kind = File[0].header['FILTER']
 
-        if file_kind == 'VPH-All':
+        if ('Gri' in file_kind) or ('Bessell_R2' in filter_kind):
             # Get File name
             filename    = Files[i][Files[i].find('/')+1:Files[i].find('.fits')]
             full_name   = File[0].header['OBJECT']
 
             # Break the name in two if there are two words
-            name_break  = full_name.find(' ')
+            name_break  = full_name.find('_')
             if name_break != -1:
                 object_name = full_name[:name_break]
                 type_name   = full_name[1+name_break:]
@@ -81,48 +82,55 @@ def prepare_data(file_directory = 'raw_data/*.fits', crop = False, rotate = Fals
                 # Copy the science file in the directory and rename it to something useful
                 os.system('cp %s %s/%s_%s.fits'%(Files[i], directory_name, type_name, filename))
 
-            # Once saved, rotate or flip if specified
-            if rotate:
-                # Rotate the Data by 90 degrees. Top will be left
-                if file_type in ['zero', 'Bias', 'Zero', 'bias']:
-                    file_name = '%s/%s_%s.fits'%('bias', type_name, filename)
-                else:
-                    file_name = '%s/%s_%s.fits'%(directory_name, type_name, filename)
-                fits_file = fits.open(file_name)
-                fits_file[0].data = np.rot90(fits_file[0].data)#, k = 1)
+            if file_type in ['zero', 'Bias', 'Zero', 'bias', 'object', 'Object']:
+                # Once saved, rotate or flip if specified
+                if rotate:
+                    # Rotate the Data by 90 degrees. Top will be left
+                    if file_type in ['zero', 'Bias', 'Zero', 'bias']:
+                        file_name = '%s/%s_%s.fits'%('bias', type_name, filename)
+                    else:
+                        file_name = '%s/%s_%s.fits'%(directory_name, type_name, filename)
+                    fits_file = fits.open(file_name)
+                    fits_file[0].data = np.rot90(fits_file[0].data, k = 3)
 
-                # Modify the bias and data sec variables
-                biassec = fits_file[0].header['BIASSEC']
-                bias_coma = biassec.find(',')
-                one_bias = biassec[1:bias_coma]
-                two_bias = biassec[bias_coma+1:-1]
-                out_bias = '[%s,%s]'%(two_bias, one_bias)
+                    # Modify the bias and data sec variables
+                    biassec = fits_file[0].header['BIASSEC']
+                    bias_coma = biassec.find(',')
+                    one_bias = biassec[1:bias_coma]
+                    two_bias = biassec[bias_coma+1:-1]
+                    out_bias = '[%s,%s]'%(two_bias, one_bias)
 
-                datasec = fits_file[0].header['DATASEC']
-                data_coma = datasec.find(',')
-                one_data = datasec[1:data_coma]
-                two_data = datasec[data_coma+1:-1]
-                out_data = '[%s,%s]'%(two_data, one_data)
+                    datasec = fits_file[0].header['DATASEC']
+                    data_coma = datasec.find(',')
+                    one_data = datasec[1:data_coma]
+                    two_data = datasec[data_coma+1:-1]
+                    out_data = '[%s,%s]'%(two_data, one_data)
 
-                fits_file.writeto(file_name, overwrite = True)
-                fits.setval(file_name,  'BIASSEC', value='[1:4096,1:1024]')
-                fits.setval(file_name,  'DATASEC', value='[1:4096,1:1024]')
-                fits.setval(file_name, 'DISPAXIS', value='1')
+                    fits_file.writeto(file_name, overwrite = True)
+                    fits.setval(file_name,  'BIASSEC',  value=out_bias)
+                    fits.setval(file_name,  'DATASEC',  value=out_data)
+                    fits.setval(file_name,  'DISPAXIS', value='1')
 
-                print('Rotated ' + file_name)
+                    print('Rotated ' + file_name)
 
-            if crop:
-                # Rotate the Data by 270 degrees. Top will be left
-                if file_type in ['zero', 'Bias', 'Zero', 'bias']:
-                    file_name = '%s/%s_%s.fits'%('bias', type_name, filename)
-                else:
-                    file_name = '%s/%s_%s.fits'%(directory_name, type_name, filename)
+                if crop:
+                    # Rotate the Data by 270 degrees. Top will be left
+                    if file_type in ['zero', 'Bias', 'Zero', 'bias']:
+                        crop_name = '%s/%s_%s.fits'%('bias', type_name, filename)
+                    else:
+                        crop_name = '%s/%s_%s.fits'%(directory_name, type_name, filename)
 
-                # Crop the data
-                fits_file = fits.open(file_name)
-                fits_file[0].data = fits_file[0].data[343:617,149:4096]
-                fits_file.writeto(file_name, overwrite = True)
-                print('Cropped ' + file_name)
+                    xmin, xmax = 149, 4096
+                    ymin, ymax = 343, 800
+
+                    # Crop the data
+                    fits_file = fits.open(crop_name)
+                    fits_file[0].data = fits_file[0].data[ymin:ymax,xmin:xmax]
+                    fits_file.writeto(crop_name, overwrite = True)
+                    fits.setval(crop_name,  'BIASSEC',  value='[%s:%s,%s:%s]'%(xmin - xmin + 1, xmax - xmin, ymin - ymin + 1, ymax - ymin))
+                    fits.setval(crop_name,  'DATASEC',  value='[%s:%s,%s:%s]'%(xmin - xmin + 1, xmax - xmin, ymin - ymin + 1, ymax - ymin))
+                    fits.setval(crop_name,  'DISPAXIS', value='1')
+                    print('Cropped ' + crop_name)
 
 def extract_fits_info(file_directory, variable_names, data_index = 0, return_counts = True):
     '''

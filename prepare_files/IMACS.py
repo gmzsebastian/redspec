@@ -35,8 +35,9 @@ def prepare_data(file_directory = 'raw_data/*.fits', crop = False, rotate = Fals
         print(Files[i])
         File = fits.open(Files[i])
         file_kind = File[0].header['DISPERSR']
+        filter_kind = File[0].header['FILTER']
 
-        if 'Gri' in file_kind:
+        if ('Gri' in file_kind) or ('Bessell_R2' in filter_kind):
             # Get File name
             filename    = Files[i][Files[i].find('/')+1:Files[i].find('.fits')]
             full_name   = File[0].header['OBJECT']
@@ -81,6 +82,7 @@ def prepare_data(file_directory = 'raw_data/*.fits', crop = False, rotate = Fals
                 # Copy the science file in the directory and rename it to something useful
                 os.system('cp %s %s/%s_%s.fits'%(Files[i], directory_name, type_name, filename))
 
+            if file_type in ['zero', 'Bias', 'Zero', 'bias', 'object', 'Object']:
                 # Once saved, rotate or flip if specified
                 if rotate:
                     # Rotate the Data by 90 degrees. Top will be left
@@ -105,24 +107,30 @@ def prepare_data(file_directory = 'raw_data/*.fits', crop = False, rotate = Fals
                     out_data = '[%s,%s]'%(two_data, one_data)
 
                     fits_file.writeto(file_name, overwrite = True)
-                    fits.setval(file_name,  'BIASSEC', value='[1:4096,1:1024]')
-                    fits.setval(file_name,  'DATASEC', value='[1:4096,1:1024]')
-                    fits.setval(file_name, 'DISPAXIS', value='1')
+                    fits.setval(file_name,  'BIASSEC',  value=out_bias)
+                    fits.setval(file_name,  'DATASEC',  value=out_data)
+                    fits.setval(file_name,  'DISPAXIS', value='1')
 
                     print('Rotated ' + file_name)
 
                 if crop:
                     # Rotate the Data by 270 degrees. Top will be left
                     if file_type in ['zero', 'Bias', 'Zero', 'bias']:
-                        file_name = '%s/%s_%s.fits'%('bias', type_name, filename)
+                        crop_name = '%s/%s_%s.fits'%('bias', type_name, filename)
                     else:
-                        file_name = '%s/%s_%s.fits'%(directory_name, type_name, filename)
+                        crop_name = '%s/%s_%s.fits'%(directory_name, type_name, filename)
+
+                    xmin, xmax = 149, 4096
+                    ymin, ymax = 343, 800
 
                     # Crop the data
-                    fits_file = fits.open(file_name)
-                    fits_file[0].data = fits_file[0].data[343:617,149:4096]
-                    fits_file.writeto(file_name, overwrite = True)
-                    print('Cropped ' + file_name)
+                    fits_file = fits.open(crop_name)
+                    fits_file[0].data = fits_file[0].data[ymin:ymax,xmin:xmax]
+                    fits_file.writeto(crop_name, overwrite = True)
+                    fits.setval(crop_name,  'BIASSEC',  value='[%s:%s,%s:%s]'%(xmin - xmin + 1, xmax - xmin, ymin - ymin + 1, ymax - ymin))
+                    fits.setval(crop_name,  'DATASEC',  value='[%s:%s,%s:%s]'%(xmin - xmin + 1, xmax - xmin, ymin - ymin + 1, ymax - ymin))
+                    fits.setval(crop_name,  'DISPAXIS', value='1')
+                    print('Cropped ' + crop_name)
 
 def extract_fits_info(file_directory, variable_names, data_index = 0, return_counts = True):
     '''
@@ -206,7 +214,7 @@ def example():
     '''
 
     # Create a logfile for the night
-    extract_fits_info('raw_data/*.fits', ['OBJECT', 'EXPTYPE', 'EXPTIME', 'RA', 'DEC', 'DATE-OBS', 'TIME-OBS', 'FILTER', 'DISPERSR', 'BINNING'])
+    extract_fits_info('raw_data/*.fits', ['OBJECT', 'EXPTYPE', 'EXPTIME', 'RA', 'DEC', 'DATE-OBS', 'TIME-OBS', 'FILTER', 'GRISM'])
 
     # Prepare all the data into the right format, with the suffix names specified by variables
     prepare_data(variables = [''], rotate = True, crop = True)
