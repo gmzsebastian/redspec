@@ -191,8 +191,8 @@ def iraf_zerocombine(directory):
                 lsigma='3.0',  # Lower sigma clipping factor
                 hsigma='3.0',  # Upper sigma clipping factor
                 # CCD redout noise (electrons)
-                rdnoise='rdnoise',
-                gain='gain',  # CCD gain (electrons / DN)
+                rdnoise='ENOISE',
+                gain='EGAIN',  # CCD gain (electrons / DN)
                 snoise='0.0',  # Sensitiviy noise
                 # Percentile clipping algorithm parameter.
                 pclip='-0.5',
@@ -260,8 +260,8 @@ def iraf_ccdproc(directory, file_type, bias_file, flat_file=''):
             max_cache='0',  # Maximum image cachine memory in MB
             noproc='no',  # List processing steps only?
             fixpix='no',  # Fix bad CCD lines and columns?
-            overscan='no',  # Apply overscan strip correction?
-            trim='no',  # Trim the image?
+            overscan='yes',  # Apply overscan strip correction?
+            trim='yes',  # Trim the image?
             zerocor='yes',  # Apply zero level correction?
             darkcor='no',  # Apply dark count correction?
             flatcor=flatcor_in,  # Apply flat field correction?
@@ -273,8 +273,8 @@ def iraf_ccdproc(directory, file_type, bias_file, flat_file=''):
             # If yes, the form of scan mode correction is specified by scantype
             readaxis='line',  # Read out axis (Column or line)
             fixfile='',  # File describing the bad lines and columns
-            biassec='',  # Overscan strip image section
-            trimsec='',  # Trim data section
+            biassec='[4071:4179,1500:2600]',  # Overscan strip image section
+            trimsec='[50:4030,1500:2600]',  # Trim data section
             zero=bias_file,  # Zero level calibration image
             dark='',  # Dark count calibration image
             flat=flat,  # Flat field images
@@ -354,9 +354,9 @@ def iraf_flatcombine(directory, response_sample, fit_order):
                 lsigma='3.0',  # Lower sigma clipping factor
                 hsigma='3.0',  # Upper sigma clipping factor
                 # CCD redout noise (electrons)
-                rdnoise='rdnoise',
+                rdnoise='ENOISE',
                 # CCD gain (electrons / DN)
-                gain='gain',
+                gain='EGAIN',
                 snoise='0.0',  # Sensitiviy noise
                 # Percentile clipping algorithm parameter.
                 pclip='-0.5',
@@ -378,7 +378,7 @@ def iraf_flatcombine(directory, response_sample, fit_order):
              threshold='INDEF',
              # If INDEF then don't do anything.
              # Samples of points to use in fitting the average function.
-             sample=response_sample,
+             sample='*',
              # If * all points will be used
              # Number of sample points to average or median before fitting the function.
              naverage='1',
@@ -640,7 +640,7 @@ def iraf_apall(directory, objecto, file_type, trace_order=3):
           ulimit='INDEF',  # Upper aperture limit relative to center
           ylevel='0.1',  # Fraction of peak or intensity for automatic width
           peak='yes',  # Is ylevel a fraction of the peak?
-          bkg='yes',  # Substract background in automatic width?
+          bkg='yes',  # Subtract background in automatic width?
           r_grow='0.0',  # Grow limits by this factor
           avglimits='no',  # Average limits over all apertures?
           # Tracing Parameters
@@ -657,15 +657,15 @@ def iraf_apall(directory, objecto, file_type, trace_order=3):
           t_grow='0.0',  # Trace rejection growing radius
           # Extraction Parameters
           # Background to subtract (none, average, median, minimum, or fit)
-          background='none',
+          background='median',
           skybox='1',  # Box car smoothing length of sky
           # Extraction weights (none or variance = optimal extraction)
           weights='variance',
           pfit='fit1d',  # Profile fitting type (fit1d or fit2d)
           clean='yes',  # Detect and replace bad pixels?
           saturation='INDEF',  # Saturation level
-          readnoise='enoise',  # Read out noise sigma
-          gain='egain',  # Photon gain
+          readnoise='ENOISE',  # Read out noise sigma
+          gain='EGAIN',  # Photon gain
           lsigma='4.0',  # Lower region threshold
           usigma='4.0',  # Upper rejection threshold
           nsubaps='1',  # Number of subapertures per aperture
@@ -673,7 +673,8 @@ def iraf_apall(directory, objecto, file_type, trace_order=3):
           )
 
 
-def individual_flats(directory, objecto, bias_file='bias/Bias.fits', response_sample='10:2670', fit_order=20):
+def individual_flats(directory, objecto, bias_file,
+                     response_sample='10:2670', fit_order=20):
     '''
     If there was only one set of flats to be used for multiple objects, then use this function.
 
@@ -687,6 +688,10 @@ def individual_flats(directory, objecto, bias_file='bias/Bias.fits', response_sa
     fit_order: Order of the fit to the response function.
     '''
 
+    # Test to see if the Bias.fits file already exists
+    if check_existence(directory + '/Flat_norm.fits', 'individual_flats'):
+        return
+
     # Create lists of Flats
     create_lists_flats(directory, objecto=objecto)
     # Bias correct the flats
@@ -698,7 +703,10 @@ def individual_flats(directory, objecto, bias_file='bias/Bias.fits', response_sa
     check_0(directory + '/Flat_norm.fits')
 
 
-def reduce_data(directory, objecto, do_individual_flats=True, flat_file='', bias_file='', arc_name='arc', flat_name='flat'):
+def reduce_data(directory, objecto, do_individual_flats=True,
+                science_flat='', arc_flat='',
+                bias_file='',
+                arc_name='arc', flat_name='flat'):
     '''
     Big function that encompases all of the other data reduction functions.
     Must be run in sudo, maybe it needs to run in Python2. If the file
@@ -735,9 +743,9 @@ def reduce_data(directory, objecto, do_individual_flats=True, flat_file='', bias
     else:
         # Bias and Flat correct the science and lamps
         iraf_ccdproc(directory, objecto,
-                     bias_file=bias_file, flat_file=flat_file)
+                     bias_file=bias_file, flat_file=science_flat)
         iraf_ccdproc(directory, arc_name,
-                     bias_file=bias_file, flat_file=flat_file)
+                     bias_file=bias_file, flat_file=arc_flat)
 
     # Substract the background from the images
     iraf_background(directory, objecto, fit_sample='*', fit_order=10)
@@ -754,16 +762,24 @@ parser.add_argument("input_dir", help="Directory of raw data", type=str)
 args = parser.parse_args()
 
 # Create the master Bias.fits file
-#iraf_zerocombine(args.input_dir + '/bias')
+iraf_zerocombine(args.input_dir + '/bias')
 
-# individual_flats(args.input_dir + '/flat_750', 'flat',
-#                 bias_file=args.input_dir + '/bias/Bias.fits')
-# individual_flats(args.input_dir + '/flat_150', 'flat',
-#                 bias_file=args.input_dir + '/bias/Bias.fits')
+individual_flats(args.input_dir + '/flat_750', 'flat',
+                 bias_file=args.input_dir + '/bias/Bias.fits')
+individual_flats(args.input_dir + '/flat_150', 'flat',
+                 bias_file=args.input_dir + '/bias/Bias.fits')
 
 # And then specifying where to find them
 reduce_data(args.input_dir + '/AT2019yx', 'AT2019yx',
             do_individual_flats=False,
-            flat_file=args.input_dir + '/flat_750/Flat_norm.fits',
+            science_flat=args.input_dir + '/flat_150/Flat_norm.fits',
+            arc_flat=args.input_dir + '/flat_150/Flat_norm.fits',
+            bias_file=args.input_dir + '/bias/Bias.fits',
+            arc_name='HeNeAr')
+
+reduce_data(args.input_dir + '/LTT3218', 'LTT3218',
+            do_individual_flats=False,
+            science_flat=args.input_dir + '/flat_750/Flat_norm.fits',
+            arc_flat=args.input_dir + '/flat_150/Flat_norm.fits',
             bias_file=args.input_dir + '/bias/Bias.fits',
             arc_name='HeNeAr')
