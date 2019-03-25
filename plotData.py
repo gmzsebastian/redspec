@@ -1,3 +1,4 @@
+
 import matplotlib.pyplot as plt
 import numpy as np
 from astropy.io import fits
@@ -18,17 +19,14 @@ def check_existence(file_name, function, verbose=True):
     Check if some files with file_name already exist.
     If they exist return True, if they don't return False.
     Print the name of the function too.
-
     Parameters
     -------------
     file_name: name of the files to search.
     function: Name of the function, only for plotting purposes
     verbose: Print the name of the function?
-
     Output
     -------------
     True if the file already exists, False if it doesn't
-
     '''
 
     # Check that the files don't exist
@@ -50,7 +48,6 @@ def create_individual(directory, objecto, flux_corrected=True, suffix=''):
     Take all the reduced .fits files in the directory and
     break them up into their individual .fits files and
     convert them to .txt files
-
     Parameters
     -------------
     directory: Directory where all the files are located.
@@ -58,7 +55,6 @@ def create_individual(directory, objecto, flux_corrected=True, suffix=''):
     flux_corrected: Plot the files that are flux corrected?
     suffix: Optional subset of files to plot, i.e. different standards.
             If not specified, all the files will be plotted.
-
     Output
     -------------
     Set of .fits files with
@@ -109,13 +105,19 @@ def create_individual(directory, objecto, flux_corrected=True, suffix=''):
         # Create a text file from the first fits file  with the cleaned data
         onedspec.wspectext(input=Output[:-4] + 'fits.0001.fits',
                            output=Output[:-5] + '_opt.txt',
-                           header='no', wformat="%0.6f", mode='ql')
+                           header='no',
+                           wformat="%0.6f",
+                           mode='ql')
         onedspec.wspectext(input=Output[:-4] + 'fits.1001.fits',
                            output=Output[:-5] + '_raw.txt',
-                           header='no', wformat="%0.6f", mode='ql')
+                           header='no',
+                           wformat="%0.6f",
+                           mode='ql')
         onedspec.wspectext(input=Output[:-4] + 'fits.2001.fits',
                            output=Output[:-5] + '_sig.txt',
-                           header='no', wformat="%0.6f", mode='ql')
+                           header='no',
+                           wformat="%0.6f",
+                           mode='ql')
 
 
 def generate_output(directory, objecto, flux_corrected=True, suffix=''):
@@ -123,7 +125,6 @@ def generate_output(directory, objecto, flux_corrected=True, suffix=''):
     Generate a three column ASCII file with wavelength, flux, and sigma for
     every specified file. Also generate the same output with the optimally
     extracted and raw spectra.
-
     Parameters
     -------------
     directory: Directory where all the science files are located.
@@ -170,7 +171,6 @@ def generate_output(directory, objecto, flux_corrected=True, suffix=''):
 def plot_object(directory, objecto, suffix=''):
     '''
     Plot all the spectra by reading in the three column files.
-
     Parameters
     -------------
     directory: Directory where all the science files are located.
@@ -213,6 +213,7 @@ def plot_object(directory, objecto, suffix=''):
         plt.clf()
 
     # Make an average plot
+    print(size)
     if size == 1:
         wavelength, flux, sigma = np.genfromtxt(optimal_files[0], unpack=True)
     elif size > 1:
@@ -252,7 +253,6 @@ def plot_object(directory, objecto, suffix=''):
 def molly_parameter(directory, objecto, flux_corrected=True, suffix=''):
     '''
     Create two molly files with the information about each spectrum.
-
     Telescope options:
     Palomar 200in
     Wilson
@@ -272,7 +272,6 @@ def molly_parameter(directory, objecto, flux_corrected=True, suffix=''):
     SAAO 1.9m
     NTT
     'elsewhere'
-
     Parameters
     -------------
     directory: Directory where all the science files are located.
@@ -416,7 +415,8 @@ parser = argparse.ArgumentParser()
 parser.add_argument("input_dir", help="Directory of raw data", type=str)
 args = parser.parse_args()
 
-all_in_one(args.input_dir + '/AT2019yx', 'AT2019yx',
-           flux_corrected=False)
+obj_list = ["AT2019yx"]
 
-#molly_parameter('AT2018lfe', 'AT2018lfe')
+for obj in obj_list:
+    all_in_one(args.input_dir + '/' + obj, obj,
+               flux_corrected=True)

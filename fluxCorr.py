@@ -78,10 +78,10 @@ def create_standard_sens(directory, objecto, iraf_name, iraf_directory='iidscal'
     standard_output = directory + '/' + iraf_name + '_flux' + suffix
 
     # Extinction information
-    extinction_file = '/Users/pcowpert/anaconda3/envs/iraf27/iraf/noao/'
-    'lib/onedstds/%s/%s.dat' % (iraf_directory, iraf_name)
-    caldir_file = '/Users/pcowpert/anaconda3/envs/iraf27/iraf/noao/'
-    'lib/onedstds/%s/' % iraf_directory
+    extinction_file = '/Users/pcowpert/anaconda3/envs/iraf27/iraf/noao/'\
+        'lib/onedstds/%s/%s.dat' % (iraf_directory, iraf_name)
+    caldir_file = '/Users/pcowpert/anaconda3/envs/iraf27/iraf/noao/'\
+        'lib/onedstds/%s/' % iraf_directory
 
     # Check that the files don't exist
     if not check_existence(standard_output, 'create_standard_sens'):
@@ -129,7 +129,7 @@ def create_standard_sens(directory, objecto, iraf_name, iraf_directory='iidscal'
             newextinction='',  # Output revised extinction file
             observatory=')_.observatory',  # Observatory for data
             function='legendre',  # Fitting function
-            order='10',  # Order to fit
+            order='8',  # Order to fit
             interactive='yes',  # Determine sensitivity function interactively?
             graphs='sr',  # Graphs per frame
             marks='plus cross box',  # Data mark types
@@ -195,5 +195,9 @@ args = parser.parse_args()
 
 create_standard_sens(args.input_dir + '/LTT3218', 'LTT3218', 'l3218',
                      iraf_directory='ctionewcal')
-iraf_standard(args.input_dir + '/AT2019yx', 'AT2019yx',
-              args.input_dir + '/LTT3218/sens_l3218.fits')
+
+obj_list = ["AT2019yx"]
+
+for obj in obj_list:
+    iraf_standard(args.input_dir + '/' + obj, obj,
+                  args.input_dir + '/LTT3218/sens_l3218.fits')

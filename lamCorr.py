@@ -489,20 +489,12 @@ parser = argparse.ArgumentParser()
 parser.add_argument("input_dir", help="Directory of raw data", type=str)
 args = parser.parse_args()
 
-best_cenwave, best_pix_scale = test_solution(args.input_dir + '/AT2019yx',
-                                             6191.06426842017,
-                                             2.0057674034861663,
-                                             bright_lines=[4471.4770, 5015.6750, 6402.2460, 7032.4127, 7438.899, 8377.6070], arc_name='HeNeAr')
+obj_list = ["AT2019yx", "LTT3218"]
+for obj in obj_list:
+    best_cenwave, best_pix_scale = test_solution(args.input_dir + '/' + obj,
+                                                 6105,
+                                                 1.94,
+                                                 bright_lines=[4471.4770, 5015.6750, 6402.2460, 7032.4127, 7438.899, 8377.6070], arc_name='HeNeAr')
 
-
-wavelength_solution(args.input_dir + '/AT2019yx', 'AT2019yx', best_cenwave,
-                    best_pix_scale, arc_name='HeNeAr')
-
-best_cenwave, best_pix_scale = test_solution(args.input_dir + '/LTT3218',
-                                             6191.06426842017,
-                                             2.0057674034861663,
-                                             bright_lines=[4471.4770, 5015.6750, 6402.2460, 7032.4127, 7438.899, 8377.6070], arc_name='HeNeAr')
-
-
-wavelength_solution(args.input_dir + '/LTT3218', 'LTT3218', best_cenwave,
-                    best_pix_scale, arc_name='HeNeAr')
+    wavelength_solution(args.input_dir + '/' + obj, obj,
+                        best_cenwave, best_pix_scale, arc_name='HeNeAr')

@@ -10,6 +10,8 @@ from pyraf.iraf import ccdred
 from pyraf.iraf import zerocombine
 from pyraf.iraf import flatcombine
 from pyraf.iraf import response
+from pyraf.iraf import ccdmask
+from pyraf.iraf import fixpix
 from pyraf.iraf import ccdproc
 from pyraf.iraf import imarith
 from pyraf.iraf import background
@@ -206,7 +208,7 @@ def iraf_zerocombine(directory):
     print('Saved Bias.fits to %s/ \n' % directory)
 
 
-def iraf_ccdproc(directory, file_type, bias_file, flat_file=''):
+def iraf_ccdproc(directory, file_type, bias_file, flat_file='', mask_file=''):
     '''
     Do the bias and flats correction for a series of fits files.
     If the files are flats, then it doesn't do a flat correction.
@@ -238,6 +240,8 @@ def iraf_ccdproc(directory, file_type, bias_file, flat_file=''):
         output_in = '@%s/flatbiaslist' % directory
         flat = ''
         flatcor_in = 'no'
+        mask = ''
+        fixpix_in = 'no'
 
     # If correcting the lamp files, do flat correction
     elif file_type in ['lamp', 'arc', 'HeNeAr', 'henear', 'arcs']:
@@ -245,6 +249,8 @@ def iraf_ccdproc(directory, file_type, bias_file, flat_file=''):
         output_in = '@%s/lamplistbiasflat' % directory
         flat = flat_file
         flatcor_in = 'yes'
+        mask = mask_file
+        fixpix_in = 'yes'
 
     # If correcting sceicne files, do flat correction
     else:
@@ -252,6 +258,8 @@ def iraf_ccdproc(directory, file_type, bias_file, flat_file=''):
         output_in = '@%s/AllfilesBiasFlat' % directory
         flat = flat_file
         flatcor_in = 'yes'
+        mask = mask_file
+        fixpix_in = 'yes'
 
     # Do the correction
     ccdproc(images=images_in,  # List of CCD images to correct
@@ -259,7 +267,7 @@ def iraf_ccdproc(directory, file_type, bias_file, flat_file=''):
             ccdtype='',  # CCD image type to correct, if empty all images will be used
             max_cache='0',  # Maximum image cachine memory in MB
             noproc='no',  # List processing steps only?
-            fixpix='no',  # Fix bad CCD lines and columns?
+            fixpix=fixpix_in,  # Fix bad CCD lines and columns?
             overscan='yes',  # Apply overscan strip correction?
             trim='yes',  # Trim the image?
             zerocor='yes',  # Apply zero level correction?
@@ -272,7 +280,7 @@ def iraf_ccdproc(directory, file_type, bias_file, flat_file=''):
             scancor='no',   # Convert flat field image to scan correction?
             # If yes, the form of scan mode correction is specified by scantype
             readaxis='line',  # Read out axis (Column or line)
-            fixfile='',  # File describing the bad lines and columns
+            fixfile=mask,  # File describing the bad lines and columns
             biassec='[4071:4179,1500:2600]',  # Overscan strip image section
             trimsec='[50:4030,1500:2600]',  # Trim data section
             zero=bias_file,  # Zero level calibration image
@@ -399,6 +407,27 @@ def iraf_flatcombine(directory, response_sample, fit_order):
              cursor='',  # Cursor?
              mode='ql'  # IRAF mode
              )
+
+
+def iraf_ccdmask(directory):
+
+    flat_in = directory + '/Flat_norm.fits'
+    mask_out = flat_in.replace('.fits', '_mask')
+
+    if not check_existence(mask_out, 'iraf_ccdmask'):
+        ccdmask(image=flat_in,  # Input image. Ideally a flat field
+                mask=mask_out,  # Output pixel mask
+                ncmed=10,  # Column size of moving median rectangle (min 3)
+                nlmed=10,  # Line size of moving median rectangle (min 3)
+                ncsig=20,  # Column size of search box (Box min 100 pixels)
+                nlsig=20,  # Line size of search box (Box min 100 pixels)
+                lsigma=6,  # Sigma to select below average
+                hsigma=6,  # Sigma to select above average
+                ngood=7,  # Gap size of pixels to flag as bad
+                linterp=2,  # Mask code for interpolation along lines
+                cinterp=3,  # Mask code for interpolation along columns
+                eqinterp=2,  # Mask code for interpolation along both.
+                )
 
 
 def check_0(filelist):
@@ -674,7 +703,7 @@ def iraf_apall(directory, objecto, file_type, trace_order=3):
 
 
 def individual_flats(directory, objecto, bias_file,
-                     response_sample='10:2670', fit_order=20):
+                     response_sample='*', fit_order=20):
     '''
     If there was only one set of flats to be used for multiple objects, then use this function.
 
@@ -701,10 +730,12 @@ def individual_flats(directory, objecto, bias_file,
         directory,  response_sample=response_sample, fit_order=fit_order)
     # Check that the master Flat file has no 0's
     check_0(directory + '/Flat_norm.fits')
+    iraf_ccdmask(directory)
 
 
 def reduce_data(directory, objecto, do_individual_flats=True,
                 science_flat='', arc_flat='',
+                science_mask='', arc_mask='',
                 bias_file='',
                 arc_name='arc', flat_name='flat'):
     '''
@@ -735,17 +766,25 @@ def reduce_data(directory, objecto, do_individual_flats=True,
         iraf_flatcombine(directory, response_sample='*', fit_order=40)
         # Check that the master Flat file has no 0's
         check_0(directory + '/Flat_norm.fits')
+        # Create Bad Pixel Mask
+        iraf_ccdmask(directory)
         # Bias and Flat correct the science and lamps
         iraf_ccdproc(directory, objecto,  bias_file=bias_file,
-                     flat_file=directory + '/Flat_norm.fits')
+                     flat_file=directory + '/Flat_norm.fits',
+                     mask_file=directory + '/Flat_norm_mask.pl')
         iraf_ccdproc(directory, arc_name, bias_file=bias_file,
-                     flat_file=directory + '/Flat_norm.fits')
+                     flat_file=directory + '/Flat_norm.fits',
+                     mask_file=directory + '/Flat_norm_mask.pl')
     else:
         # Bias and Flat correct the science and lamps
         iraf_ccdproc(directory, objecto,
-                     bias_file=bias_file, flat_file=science_flat)
+                     bias_file=bias_file,
+                     flat_file=science_flat,
+                     mask_file=science_mask)
         iraf_ccdproc(directory, arc_name,
-                     bias_file=bias_file, flat_file=arc_flat)
+                     bias_file=bias_file,
+                     flat_file=arc_flat,
+                     mask_file=arc_mask)
 
     # Substract the background from the images
     iraf_background(directory, objecto, fit_sample='*', fit_order=10)
@@ -769,17 +808,27 @@ individual_flats(args.input_dir + '/flat_750', 'flat',
 individual_flats(args.input_dir + '/flat_150', 'flat',
                  bias_file=args.input_dir + '/bias/Bias.fits')
 
-# And then specifying where to find them
-reduce_data(args.input_dir + '/AT2019yx', 'AT2019yx',
-            do_individual_flats=False,
-            science_flat=args.input_dir + '/flat_150/Flat_norm.fits',
-            arc_flat=args.input_dir + '/flat_150/Flat_norm.fits',
-            bias_file=args.input_dir + '/bias/Bias.fits',
-            arc_name='HeNeAr')
+# Determine bad pixel mask
+# Process Science Targets
+obj_list = ["AT2019yx"]
+for obj in obj_list:
+    reduce_data(args.input_dir + '/' + obj, obj,
+                do_individual_flats=False,
+                science_flat=args.input_dir + '/flat_150/Flat_norm.fits',
+                arc_flat=args.input_dir + '/flat_150/Flat_norm.fits',
+                science_mask=args.input_dir + '/flat_150/Flat_norm_mask.pl',
+                arc_mask=args.input_dir + '/flat_150/Flat_norm_mask.pl',
+                bias_file=args.input_dir + '/bias/Bias.fits',
+                arc_name='HeNeAr')
 
-reduce_data(args.input_dir + '/LTT3218', 'LTT3218',
-            do_individual_flats=False,
-            science_flat=args.input_dir + '/flat_750/Flat_norm.fits',
-            arc_flat=args.input_dir + '/flat_150/Flat_norm.fits',
-            bias_file=args.input_dir + '/bias/Bias.fits',
-            arc_name='HeNeAr')
+# Process Standards as they have different arc and science flats.
+std_list = ["LTT3218"]
+for obj in std_list:
+    reduce_data(args.input_dir + '/' + obj, obj,
+                do_individual_flats=False,
+                science_flat=args.input_dir + '/flat_750/Flat_norm.fits',
+                arc_flat=args.input_dir + '/flat_150/Flat_norm.fits',
+                science_mask=args.input_dir + '/flat_750/Flat_norm_mask.pl',
+                arc_mask=args.input_dir + '/flat_150/Flat_norm_mask.pl',
+                bias_file=args.input_dir + '/bias/Bias.fits',
+                arc_name='HeNeAr')
