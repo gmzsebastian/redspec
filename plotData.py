@@ -76,6 +76,10 @@ def create_individual(directory, objecto, flux_corrected=True, suffix=''):
     else:
         Files = glob.glob("%s/%s*Wave*.fits" % (directory, objecto))
 
+    print(directory)
+    print("%s/%s*WaveStd*%s*.fits" %
+          (directory, objecto, suffix))
+    print(Files)
     # For each one of thoese, divide them into 3 text files
     for i in range(len(Files)):
         print(Files[i])
@@ -419,4 +423,4 @@ obj_list = ["AT2019yx"]
 
 for obj in obj_list:
     all_in_one(args.input_dir + '/' + obj, obj,
-               flux_corrected=True)
+               flux_corrected=True, suffix='')
