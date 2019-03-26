@@ -489,11 +489,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument("input_dir", help="Directory of raw data", type=str)
 args = parser.parse_args()
 
-obj_list = ["AT2019yx", "LTT3218"]
+obj_list = ["ASASSN-19bt", "AT2019aov", "AT2019aqv", "ZTF18acbvkwl", "LTT3218"]
 for obj in obj_list:
     best_cenwave, best_pix_scale = test_solution(args.input_dir + '/' + obj,
-                                                 6105,
-                                                 1.94,
+                                                 6098,
+                                                 1.89,
                                                  bright_lines=[4471.4770, 5015.6750, 6402.2460, 7032.4127, 7438.899, 8377.6070], arc_name='HeNeAr')
 
     wavelength_solution(args.input_dir + '/' + obj, obj,

@@ -115,13 +115,15 @@ def iraf_scombine(directory, objecto):
 
 
 def combine_spectra(directory, objecto):
+    os.system('mv %s A' % directory)
+    create_spec_list('A', objecto)
 
-    create_spec_list(directory, objecto)
-
-    if check_existence(directory + '/%s_combined.fits' % objecto, 'combine_spectra'):
+    if check_existence('A/%s/%s_combined.fits' % (objecto, objecto),
+                       'combine_spectra'):
         return
 
-    iraf_scombine(directory, objecto)
+    iraf_scombine('A', objecto)
+    os.system('mv A %s' % directory)
 
 
 parser = argparse.ArgumentParser()

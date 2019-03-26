@@ -196,7 +196,7 @@ args = parser.parse_args()
 create_standard_sens(args.input_dir + '/LTT3218', 'LTT3218', 'l3218',
                      iraf_directory='ctionewcal')
 
-obj_list = ["AT2019yx"]
+obj_list = ["ASASSN-19bt", "AT2019aov", "AT2019aqv", "ZTF18acbvkwl"]
 
 for obj in obj_list:
     iraf_standard(args.input_dir + '/' + obj, obj,

@@ -9,6 +9,7 @@ from pyraf.iraf import noao
 from pyraf.iraf import ccdred
 from pyraf.iraf import zerocombine
 from pyraf.iraf import flatcombine
+from pyraf.iraf import imcombine
 from pyraf.iraf import response
 from pyraf.iraf import ccdmask
 from pyraf.iraf import fixpix
@@ -67,7 +68,7 @@ def create_lists_science(directory, objecto):
 
     Output
     -------------
-    5 lists:
+    6 lists:
     - List of objects
     - List + _BiasFlat
     - List + Sky
@@ -137,6 +138,24 @@ def create_lists_lamp(directory, objecto='arc'):
               (directory, directory))
     os.system("sed 's/.fits/Out.fits/g' %s/lamplistbiasflat > %s/lamplistbiasflatout" %
               (directory, directory))
+
+
+def create_comb_list(directory, objecto):
+    '''
+    Create a series of lists of the input files for coadding with imcombine
+
+    Parameters
+    -------------
+    directory: Directory where all the lamp files are located.
+    objecto: Object name
+
+    Output
+    -------------
+    1 list: Images to combine.
+    '''
+
+    # Create lists for lamp files
+    os.system('ls %s/%s*.fits > %s/Comblist' % (directory, objecto, directory))
 
 
 def iraf_zerocombine(directory):
@@ -428,6 +447,77 @@ def iraf_ccdmask(directory):
                 cinterp=3,  # Mask code for interpolation along columns
                 eqinterp=2,  # Mask code for interpolation along both.
                 )
+
+
+def iraf_imcombine(directory, objecto):
+
+    imcombine(  # List of input images to combine.
+        input='@%s/Comblist' % directory,
+        # Output combined image(s).
+        output='%s' % objecto,
+        # Optional output multiextension FITS file(s).
+        headers="",
+        # Optional output bad pixel mask(s) with good values of 0 and bad values of 1.
+        bpmasks="",
+        # Optional output mask file(s) identifying rejected or excluded pixels.
+        rejmask="",
+        # Optional output pixel mask(s) giving the number of input pixels rejected or excluded from the input images.
+        nrejmasks="",
+        # Optional output exposure mask(s) giving the sum of the exposure values of the input images with non - zero weights that contributed to that pixel.
+        expmasks="",
+        # Optional output sigma image(s).
+        sigma='',
+        logfile="logfile",  # Optional output log file.
+        # (average | median | sum) Type of combining operation performed on the final set of pixels(after offsetting, masking, thresholding, and rejection).
+        combine="average",
+        # (none | minmax | ccdclip | crreject | sigclip | avsigclip | pclip) Type of rejection operation performed on the pixels remaining after offsetting, masking and thresholding.
+        reject="avsigclip",
+        # Project(combine) across the highest dimension of the input images?
+        project="no",
+        # (none | short | ushort | integer | long | real | double) Output image pixel datatype.
+        outtype="real",
+        # Output region limits specified as pairs of whitespace separated values.
+        outlimits="",
+        offsets="none",  # (none|wcs|world|physical|grid|<filename>)
+        # (none|goodvalue|badvalue|goodbits|badbits|!<keyword>) Type of pixel masking to use.
+        masktype="none",
+        maskvalue="0",  # Mask value used with the masktype parameter.
+        # Output value to be used when there are no pixels.
+        blank='0.',
+        # (none|mode|median|mean|exposure|@ < file > |!< keyword > ) Multiplicative image scaling to be applied.
+        scale="exposure",
+        # (none|mode|median|mean|@ < file > |!< keyword > ) Additive zero level image shifts to be applied.
+        zero="none",
+        # (none|mode|median|mean|exposure|@ < file > |!< keyword > ) Weights to be applied during the final averaging.
+        weight="exposure",
+        # Section of images to use in computing image statistics for scaling and weighting.
+        statsec="[50:4030,1500:2600]",
+        # Image header keyword to be used with the exposure scaling and weighting options.
+        expname="EXPTIME",
+
+        ## Algorithm Parameters ##
+
+        lthreshold='INDEF',
+        # Low and high thresholds to be applied to the input pixels.
+        hthreshold='INDEF',
+        nlow='1',
+        # (minmax) The number of low and high pixels to be rejected by the "minmax" algorithm.
+        nhigh='1',
+        # The minimum number of pixels to retain or the maximum number to reject when using the clipping algorithms(ccdclip, crreject, sigclip, avsigclip, or pclip).
+        nkeep='1',
+        mclip='yes',  # (ccdclip, crreject, sigclip, avsigcliip) Use the median as the estimate for the true intensity rather than the average with high and low values excluded in the "ccdclip", "crreject", "sigclip", and "avsigclip" algorithms?
+        lsigma='3.',
+        # (ccdclip, crreject, sigclip, avsigclip, pclip) Low and high sigma clipping factors for the "ccdclip", "crreject", "sigclip", "avsigclip", and "pclip" algorithms.
+        hsigma='3.',
+        rdnoise="ENOISE",
+        # (ccdclip, crreject, sigclip, avsigclip) This parameter determines when poisson corrections are made to the computation of a sigma for images with different scale factors.
+        sigscale='0.1',
+        # (pclip) Percentile clipping algorithm parameter.
+        pclip='-0.5',
+        # Radius in pixels for additional pixel to be rejected in an image with a rejected pixel from one of the rejection algorithms.
+        grow='0.',
+        mode='ql',  # IRAF mode
+    )
 
 
 def check_0(filelist):
@@ -733,7 +823,29 @@ def individual_flats(directory, objecto, bias_file,
     iraf_ccdmask(directory)
 
 
-def reduce_data(directory, objecto, do_individual_flats=True,
+def combine_images(directory, objecto):
+
+    if not os.path.exists(directory + '/single_images'):
+        os.system('mkdir %s/single_images' % directory)
+
+    create_comb_list(directory, objecto)
+
+    output_image = "%s/%s_Comb.fits" % (directory, objecto)
+
+    if check_existence(output_image, "combine_images"):
+        return
+
+    iraf_imcombine(directory, output_image)
+
+    file_list = glob.glob("%s/%s_*.fits" % (directory, objecto))
+
+    for f in file_list:
+        if (not "_Comb" in f):
+            os.system('mv %s %s/single_images' % (f, directory))
+
+
+def reduce_data(directory, objecto,
+                do_individual_flats=True,
                 science_flat='', arc_flat='',
                 science_mask='', arc_mask='',
                 bias_file='',
@@ -810,8 +922,9 @@ individual_flats(args.input_dir + '/flat_150', 'flat',
 
 # Determine bad pixel mask
 # Process Science Targets
-obj_list = ["AT2019yx"]
+obj_list = ["ASASSN-19bt", "AT2019aov", "AT2019aqv", "ZTF18acbvkwl"]
 for obj in obj_list:
+    combine_images(args.input_dir + '/' + obj, obj)
     reduce_data(args.input_dir + '/' + obj, obj,
                 do_individual_flats=False,
                 science_flat=args.input_dir + '/flat_150/Flat_norm.fits',
