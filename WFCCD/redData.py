@@ -87,6 +87,8 @@ def create_lists_science(directory, objecto):
               "%s/AllfilesBiasFlatSkyOut" % (directory, directory))
     os.system("sed 's/.fits/Wave.fits/g' %s/AllfilesBiasFlatSkyOut > "
               "%s/AllfilesBiasFlatSkyOutWave" % (directory, directory))
+    os.system("sed 's/.fits/Trim.fits/g' %s/AllfilesBiasFlatSkyOutWave > "
+              "%s/AllfilesBiasFlatSkyOutWaveTrim" % (directory, directory))
 
 
 def create_lists_flats(directory, objecto='flat'):
@@ -287,7 +289,7 @@ def iraf_ccdproc(directory, file_type, bias_file, flat_file='', mask_file=''):
             max_cache='0',  # Maximum image cachine memory in MB
             noproc='no',  # List processing steps only?
             fixpix=fixpix_in,  # Fix bad CCD lines and columns?
-            overscan='yes',  # Apply overscan strip correction?
+            overscan='no',  # Apply overscan strip correction?
             trim='yes',  # Trim the image?
             zerocor='yes',  # Apply zero level correction?
             darkcor='no',  # Apply dark count correction?
@@ -300,7 +302,7 @@ def iraf_ccdproc(directory, file_type, bias_file, flat_file='', mask_file=''):
             # If yes, the form of scan mode correction is specified by scantype
             readaxis='line',  # Read out axis (Column or line)
             fixfile=mask,  # File describing the bad lines and columns
-            biassec='[4071:4179,1500:2600]',  # Overscan strip image section
+            biassec='',  # Overscan strip image section
             trimsec='[50:4030,1500:2600]',  # Trim data section
             zero=bias_file,  # Zero level calibration image
             dark='',  # Dark count calibration image
@@ -922,7 +924,8 @@ individual_flats(args.input_dir + '/flat_150', 'flat',
 
 # Determine bad pixel mask
 # Process Science Targets
-obj_list = ["ASASSN-19bt", "AT2019aov", "AT2019aqv", "ZTF18acbvkwl"]
+obj_list = ["AT2018iao", "AT2019ahk", "AT2019aov", "AT2019aqv"]
+
 for obj in obj_list:
     combine_images(args.input_dir + '/' + obj, obj)
     reduce_data(args.input_dir + '/' + obj, obj,
@@ -937,6 +940,7 @@ for obj in obj_list:
 # Process Standards as they have different arc and science flats.
 std_list = ["LTT3218"]
 for obj in std_list:
+    combine_images(args.input_dir + '/' + obj, obj)
     reduce_data(args.input_dir + '/' + obj, obj,
                 do_individual_flats=False,
                 science_flat=args.input_dir + '/flat_750/Flat_norm.fits',

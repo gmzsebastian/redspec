@@ -5,6 +5,7 @@ from scipy import optimize
 import glob
 from numpy.polynomial.legendre import Legendre
 from pyraf import iraf
+from pyraf.iraf import scopy
 import os
 from matplotlib.widgets import Slider, Button
 import subprocess
@@ -52,7 +53,8 @@ def gaussian(x, h, c, w):
 # Define an error function to fit the gaussian
 
 
-def errfunc_gauss(p, x, y): return (gaussian(x, *p) - y)**2
+def errfunc_gauss(p, x, y):
+    return (gaussian(x, *p) - y)**2
 
 
 def normalize(x, mina, maxa):
@@ -60,6 +62,31 @@ def normalize(x, mina, maxa):
     Normalization function to make the maximum = 1 and the minimum = -1
     '''
     return (2.0 * x - (maxa + mina)) / (maxa - mina)
+
+
+def iraf_scopy(directory, lammin, lammax):
+    input_list = "@%s/AllfilesBiasFlatSkyOutWave" % directory
+    output_list = "@%s/AllfilesBiasFlatSkyOutWaveTrim" % directory
+    w1 = lammin
+    w2 = lammax
+
+    scopy(input=input_list,
+          output=output_list,
+          w1=str(w1),
+          w2=str(w2),
+          apertures="",
+          beams="",
+          bands="",
+          apmodulus="0",
+          format="multispec",
+          renumber="no",
+          offset="0",
+          clobber="no",
+          merge="no",
+          rebin="no",
+          verbose="no",
+          mode='ql'
+          )
 
 
 def wavelength_solution(directory, objecto, cenwave, pix_scale, max_wave=9999999, min_wave=0, width_guess=4, upper_sigma=2.0, lower_sigma=2.0, order=3, max_delta=10, fit_range=9, max_width=5, arc_name='arc'):
@@ -485,16 +512,24 @@ def test_solution(directory, cenwave, pix_scale, bright_lines, width_guess=4, ma
     return s_wave.val, s_scale.val
 
 
+def trim_spectrum(file_directory, objecto, lammin=3800, lammax=9600):
+    iraf_scopy(file_directory, lammin, lammax)
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument("input_dir", help="Directory of raw data", type=str)
 args = parser.parse_args()
 
-obj_list = ["ASASSN-19bt", "AT2019aov", "AT2019aqv", "ZTF18acbvkwl", "LTT3218"]
+obj_list = ["AT2018iao", "AT2019ahk", "AT2019aov", "AT2019aqv", "LTT3218"]
+
 for obj in obj_list:
     best_cenwave, best_pix_scale = test_solution(args.input_dir + '/' + obj,
-                                                 6098,
-                                                 1.89,
-                                                 bright_lines=[4471.4770, 5015.6750, 6402.2460, 7032.4127, 7438.899, 8377.6070], arc_name='HeNeAr')
+                                                 6074.498,
+                                                 2.008,
+                                                 bright_lines=[6598.9, 6717.0,
+                                                               7173.9, 7438.899, 8377.6070], arc_name='HeNeAr')
 
     wavelength_solution(args.input_dir + '/' + obj, obj,
                         best_cenwave, best_pix_scale, arc_name='HeNeAr')
+
+    trim_spectrum(args.input_dir + '/' + obj, obj)

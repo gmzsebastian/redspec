@@ -49,8 +49,12 @@ def prepare_data(file_directory,
                 'ccd') + 3:Files[i].find('.fits')]
             full_name = File[0].header['OBJECT']
 
-            # Break the name in two if there are two words
-            name_break = full_name.find(' ')
+            try:
+                name_break = full_name.find(' ')
+            except AttributeError:
+                full_name = File[0].header['EXPTYPE']
+                name_break = full_name.find(' ')
+
             if name_break != -1:
                 object_name = full_name[:name_break]
                 type_name = full_name[1 + name_break:]
@@ -74,7 +78,7 @@ def prepare_data(file_directory,
                 os.system('cp %s %s/%s_%s.fits' % (Files[i],
                                                    file_directory + '/bias',
                                                    object_name, filename))
-            elif file_type in ['object', 'Object']:
+            elif file_type in ['Flat', 'flat', 'object', 'Object']:
                 print_name = object_name
                 directory_name = file_directory + '/' + object_name
 

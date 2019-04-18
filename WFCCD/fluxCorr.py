@@ -74,7 +74,7 @@ def create_standard_sens(directory, objecto, iraf_name, iraf_directory='iidscal'
 
     # Use the first image of the standard to calculate the calibration
     standard_file = glob.glob(
-        "%s/%s*BiasFlatSkyOutWave.fits" % (directory, objecto))[0]
+        "%s/%s*BiasFlatSkyOutWaveTrim.fits" % (directory, objecto))[0]
     standard_output = directory + '/' + iraf_name + '_flux' + suffix
 
     # Extinction information
@@ -160,7 +160,7 @@ def iraf_standard(directory, objecto, sensfile):
 
     # For each of the science targets, correct the flux
     list_of_objects = glob.glob(
-        '%s/%s*BiasFlatSkyOutWave.fits' % (directory, objecto))
+        '%s/%s*BiasFlatSkyOutWaveTrim.fits' % (directory, objecto))
 
     # Create file suffix
     suffix = sensfile[sensfile.find('sens_'):sensfile.find('.fits')]
@@ -196,7 +196,7 @@ args = parser.parse_args()
 create_standard_sens(args.input_dir + '/LTT3218', 'LTT3218', 'l3218',
                      iraf_directory='ctionewcal')
 
-obj_list = ["ASASSN-19bt", "AT2019aov", "AT2019aqv", "ZTF18acbvkwl"]
+obj_list = ["AT2018iao", "AT2019ahk", "AT2019aov", "AT2019aqv"]
 
 for obj in obj_list:
     iraf_standard(args.input_dir + '/' + obj, obj,

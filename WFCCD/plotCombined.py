@@ -188,7 +188,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("input_dir", help="Directory of raw data", type=str)
 args = parser.parse_args()
 
-obj_list = ["AT2019yx"]
+obj_list = ["AT2018ldn", "AT2019cbb", "AT2019cet", "AT2019cqg"]
 
 for obj in obj_list:
     all_in_one(args.input_dir + '/' + obj, obj)

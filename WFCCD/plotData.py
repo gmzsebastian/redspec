@@ -70,14 +70,14 @@ def create_individual(directory, objecto, flux_corrected=True, suffix=''):
 
     # Import all the wavelength and flux corrected files
     if flux_corrected:
-        Files = glob.glob("%s/%s*WaveStd*%s*.fits" %
+        Files = glob.glob("%s/%s*TrimStd*%s*.fits" %
                           (directory, objecto, suffix))
     # If not, import the files that are wavelength corrected, but not flux corrected.
     else:
-        Files = glob.glob("%s/%s*Wave*.fits" % (directory, objecto))
+        Files = glob.glob("%s/%s*Trim*.fits" % (directory, objecto))
 
     print(directory)
-    print("%s/%s*WaveStd*%s*.fits" %
+    print("%s/%s*TrimStd*%s*.fits" %
           (directory, objecto, suffix))
     print(Files)
     # For each one of thoese, divide them into 3 text files
@@ -291,11 +291,11 @@ def molly_parameter(directory, objecto, flux_corrected=True, suffix=''):
 
     # Import all the wavelength and flux corrected files
     if flux_corrected:
-        fits_files = glob.glob("%s/%s*WaveStd*%s*.fits" %
+        fits_files = glob.glob("%s/%s*TrimStd*%s*.fits" %
                                (directory, objecto, suffix))
     # If not, import the files that are wavelength corrected, but not flux corrected.
     else:
-        fits_files = glob.glob("%s/%s*Wave*.fits" % (directory, objecto))
+        fits_files = glob.glob("%s/%s*Trim*.fits" % (directory, objecto))
 
     # Text Files
     optimal_files = glob.glob("%s/*%s*%s*_optimal_final.txt" %
@@ -419,7 +419,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("input_dir", help="Directory of raw data", type=str)
 args = parser.parse_args()
 
-obj_list = ["ASASSN-19bt", "AT2019aov", "AT2019aqv", "ZTF18acbvkwl"]
+obj_list = ["AT2018iao", "AT2019ahk", "AT2019aov", "AT2019aqv"]
 
 for obj in obj_list:
     all_in_one(args.input_dir + '/' + obj, obj,
