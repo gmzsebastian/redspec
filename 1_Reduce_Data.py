@@ -76,7 +76,7 @@ def create_lists_science(directory, objecto, extension):
     os.system("sed 's/.fits/Wave.fits/g' %s/AllfilesBiasFlatSkyOut > %s/AllfilesBiasFlatSkyOutWave"%(directory, directory))
 
     if extension != '':
-        os.system("sed 's/.fits/.fits[%s]/g' %s/Allfiles > %s/Allfiles_%s"%(extension, directory, directory, extension))
+        os.system("sed 's/.fits/.fits[%s]/g' %s/Allfiles > %s/Allfiles%s"%(extension, directory, directory, extension))
 
 def create_lists_flats(directory, objecto, extension):
     '''
@@ -101,7 +101,7 @@ def create_lists_flats(directory, objecto, extension):
     os.system("sed 's/.fits/_Bias.fits/g' %s/flatlist > %s/flatbiaslist"%(directory, directory))
 
     if extension != '':
-        os.system("sed 's/.fits/.fits[%s]/g' %s/flatlist > %s/flatlist_%s"%(extension, directory, directory, extension))
+        os.system("sed 's/.fits/.fits[%s]/g' %s/flatlist > %s/flatlist%s"%(extension, directory, directory, extension))
 
 def create_lists_lamp(directory, objecto, extension):
     '''
@@ -128,7 +128,7 @@ def create_lists_lamp(directory, objecto, extension):
     os.system("sed 's/.fits/Out.fits/g' %s/lamplistbiasflat > %s/lamplistbiasflatout"%(directory, directory))
 
     if extension != '':
-        os.system("sed 's/.fits/.fits[%s]/g' %s/lamplist > %s/lamplist_%s"%(extension, directory, directory, extension))
+        os.system("sed 's/.fits/.fits[%s]/g' %s/lamplist > %s/lamplist%s"%(extension, directory, directory, extension))
 
 def iraf_zerocombine(directory, extension = ''):
     '''
@@ -158,7 +158,7 @@ def iraf_zerocombine(directory, extension = ''):
 
     # Add extension if specified
     if extension != '':
-        os.system("sed 's/.fits/.fits[%s]/g' %s/biaslist > %s/biaslist_%s"%(extension, directory, directory, extension))
+        os.system("sed 's/.fits/.fits[%s]/g' %s/biaslist > %s/biaslist%s"%(extension, directory, directory, extension))
         bias_list = 'biaslist_' + extension
 
     zerocombine(input   = '@%s/%s'%(directory, bias_list), # List of zero images to combine, start with @ for a list      
@@ -227,21 +227,21 @@ def iraf_ccdproc(directory, file_type, bias_file, flat_file = '', extension = ''
 
     # If correcting flat files, don't do flat corrections
     if (file_type == 'flat') or (file_type == 'flats') or (file_type == 'BClamp'):
-        images_in  = '@%s/flatlist_%s'%(directory, extension)
+        images_in  = '@%s/flatlist%s'%(directory, extension)
         output_in  = '@%s/flatbiaslist'%directory
         flat       = ''
         flatcor_in = 'no'
 
     # If correcting the lamp files, do flat correction
     elif file_type in ['lamp', 'arc', 'HeNeAr', 'henear', 'arcs']:
-        images_in  = '@%s/lamplist_%s'%(directory, extension)
+        images_in  = '@%s/lamplist%s'%(directory, extension)
         output_in  = '@%s/lamplistbiasflat'%directory
         flat       = flat_file
         flatcor_in = 'yes'
 
     # If correcting sceicne files, do flat correction
     else:
-        images_in  = '@%s/Allfiles_%s'%(directory, extension)
+        images_in  = '@%s/Allfiles%s'%(directory, extension)
         output_in  = '@%s/AllfilesBiasFlat'%directory
         flat       = flat_file
         flatcor_in = 'yes'
