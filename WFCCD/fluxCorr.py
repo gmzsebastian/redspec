@@ -193,11 +193,20 @@ parser = argparse.ArgumentParser()
 parser.add_argument("input_dir", help="Directory of raw data", type=str)
 args = parser.parse_args()
 
-create_standard_sens(args.input_dir + '/LTT3218', 'LTT3218', 'l3218',
-                     iraf_directory='ctionewcal')
+std_list = ["LTT7987"]
+iraf_names = ["l7987"]
 
-obj_list = ["AT2018iao", "AT2019ahk", "AT2019aov", "AT2019aqv"]
+for ct, std_dir in enumerate(std_list):
+    create_standard_sens(args.input_dir + '/' + std_dir,
+                         std_dir, iraf_names[ct],
+                         iraf_directory='ctionewcal')
 
-for obj in obj_list:
+obj_list = ["AT2018hyz"]
+std_used = ["LTT7987"] * len(obj_list)
+iraf_names = ["l7987"] * len(obj_list)
+
+for ct, obj in enumerate(obj_list):
+    std = std_used[ct]
+    iraf_name = iraf_names[ct]
     iraf_standard(args.input_dir + '/' + obj, obj,
-                  args.input_dir + '/LTT3218/sens_l3218.fits')
+                  args.input_dir + '/%s/sens_%s.fits' % (std, iraf_name))

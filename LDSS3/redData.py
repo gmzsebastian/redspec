@@ -87,6 +87,8 @@ def create_lists_science(directory, objecto):
               "%s/AllfilesBiasFlatSkyOut" % (directory, directory))
     os.system("sed 's/.fits/Wave.fits/g' %s/AllfilesBiasFlatSkyOut > "
               "%s/AllfilesBiasFlatSkyOutWave" % (directory, directory))
+    os.system("sed 's/.fits/Trim.fits/g' %s/AllfilesBiasFlatSkyOutWave > "
+              "%s/AllfilesBiasFlatSkyOutWaveTrim" % (directory, directory))
 
 
 def create_lists_flats(directory, objecto='flat'):
@@ -776,7 +778,7 @@ def iraf_apall(directory, objecto, file_type, trace_order=3):
           t_grow='0.0',  # Trace rejection growing radius
           # Extraction Parameters
           # Background to subtract (none, average, median, minimum, or fit)
-          background='median',
+          background='none',
           skybox='1',  # Box car smoothing length of sky
           # Extraction weights (none or variance = optimal extraction)
           weights='variance',
@@ -915,26 +917,10 @@ args = parser.parse_args()
 # Create the master Bias.fits file
 iraf_zerocombine(args.input_dir + '/bias')
 
-'''# Single Exposures
-obj_list = ["AT2018ibb", "AT2019atx", "AT2019cca", "ZTF18acyxpfg"]
-for obj in obj_list:
-    reduce_data(args.input_dir + '/' + obj, obj,
-                bias_file=args.input_dir + '/bias/Bias.fits',
-                arc_name='arc')'''
-
-
-'''# Multiple Exposures
-#obj_list = ["AT2018jbv", "AT2018lfe", "AT2019cbd", "AT2019yx", "ZTF19aacxrab"]
-obj_list = ["AT2019cbd"]
+# Multiple Exposures
+obj_list = ["AT2019yx", "LTT3218"]
 for obj in obj_list:
     combine_images(args.input_dir + '/' + obj, obj)
     reduce_data(args.input_dir + '/' + obj, obj,
-                bias_file=args.input_dir + '/bias/Bias.fits',
-                arc_name='arc')'''
-
-# Process Standards
-std_list = ["LTT3218-center", "LTT3864-blue"]
-for obj in std_list:
-    reduce_data(args.input_dir + '/' + obj, obj.split("-")[0],
                 bias_file=args.input_dir + '/bias/Bias.fits',
                 arc_name='arc')

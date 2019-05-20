@@ -778,7 +778,7 @@ def iraf_apall(directory, objecto, file_type, trace_order=3):
           t_grow='0.0',  # Trace rejection growing radius
           # Extraction Parameters
           # Background to subtract (none, average, median, minimum, or fit)
-          background='median',
+          background='none',
           skybox='1',  # Box car smoothing length of sky
           # Extraction weights (none or variance = optimal extraction)
           weights='variance',
@@ -917,14 +917,14 @@ args = parser.parse_args()
 # Create the master Bias.fits file
 iraf_zerocombine(args.input_dir + '/bias')
 
-individual_flats(args.input_dir + '/flat_750', 'flat',
-                 bias_file=args.input_dir + '/bias/Bias.fits')
-individual_flats(args.input_dir + '/flat_150', 'flat',
-                 bias_file=args.input_dir + '/bias/Bias.fits')
+flat_list = ["flat_150"]
+for flat_dir in flat_list:
+    individual_flats(args.input_dir + '/' + flat_dir, 'flat',
+                     bias_file=args.input_dir + '/bias/Bias.fits')
 
 # Determine bad pixel mask
 # Process Science Targets
-obj_list = ["AT2018iao", "AT2019ahk", "AT2019aov", "AT2019aqv"]
+obj_list = ["AT2018hyz"]
 
 for obj in obj_list:
     combine_images(args.input_dir + '/' + obj, obj)
@@ -935,10 +935,10 @@ for obj in obj_list:
                 science_mask=args.input_dir + '/flat_150/Flat_norm_mask.pl',
                 arc_mask=args.input_dir + '/flat_150/Flat_norm_mask.pl',
                 bias_file=args.input_dir + '/bias/Bias.fits',
-                arc_name='HeNeAr')
+                arc_name='arc')
 
-# Process Standards as they have different arc and science flats.
-std_list = ["LTT3218"]
+# Process Standards as they have sometimes different arc and science flats.
+std_list = []
 for obj in std_list:
     combine_images(args.input_dir + '/' + obj, obj)
     reduce_data(args.input_dir + '/' + obj, obj,

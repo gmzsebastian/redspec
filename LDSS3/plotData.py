@@ -70,14 +70,14 @@ def create_individual(directory, objecto, flux_corrected=True, suffix=''):
 
     # Import all the wavelength and flux corrected files
     if flux_corrected:
-        Files = glob.glob("%s/%s*WaveStd*%s*.fits" %
+        Files = glob.glob("%s/%s*WaveTrimStd*%s*.fits" %
                           (directory, objecto, suffix))
     # If not, import the files that are wavelength corrected, but not flux corrected.
     else:
         Files = glob.glob("%s/%s*Wave*.fits" % (directory, objecto))
 
     print(directory)
-    print("%s/%s*WaveStd*%s*.fits" %
+    print("%s/%s*WaveTrimStd*%s*.fits" %
           (directory, objecto, suffix))
     print(Files)
     # For each one of thoese, divide them into 3 text files
@@ -291,7 +291,7 @@ def molly_parameter(directory, objecto, flux_corrected=True, suffix=''):
 
     # Import all the wavelength and flux corrected files
     if flux_corrected:
-        fits_files = glob.glob("%s/%s*WaveStd*%s*.fits" %
+        fits_files = glob.glob("%s/%s*WaveTrimStd*%s*.fits" %
                                (directory, objecto, suffix))
     # If not, import the files that are wavelength corrected, but not flux corrected.
     else:
@@ -419,9 +419,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("input_dir", help="Directory of raw data", type=str)
 args = parser.parse_args()
 
-obj_list = ["AT2018ibb", "AT2018jbv", "AT2018lfe", "AT2019atx",
-            "AT2019cbd", "AT2019cca", "AT2019yx",
-            "ZTF18acyxpfg", "ZTF19aacxrab"]
+obj_list = ["AT2019yx"]
 
 for obj in obj_list:
     all_in_one(args.input_dir + '/' + obj, obj,

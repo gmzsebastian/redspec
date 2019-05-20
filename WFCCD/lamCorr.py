@@ -89,7 +89,9 @@ def iraf_scopy(directory, lammin, lammax):
           )
 
 
-def wavelength_solution(directory, objecto, cenwave, pix_scale, max_wave=9999999, min_wave=0, width_guess=4, upper_sigma=2.0, lower_sigma=2.0, order=3, max_delta=10, fit_range=9, max_width=5, arc_name='arc'):
+def wavelength_solution(directory, objecto, cenwave, pix_scale,
+                        max_wave=9999999, min_wave=0, width_guess=4, upper_sigma=2.0, lower_sigma=2.0,
+                        order=3, max_delta=10, fit_range=9, max_width=5, arc_name='arc'):
     '''
     Calculate the wavelength solution to a spectra. The function needs a very good initial guess of the
     slope and intercept of a linear solution to the wavelength correction. It will also check if the
@@ -177,7 +179,8 @@ def wavelength_solution(directory, objecto, cenwave, pix_scale, max_wave=9999999
         # It's less than max_width Angstroms wide
         # It's less than max_delta Angstroms from the initial guess
         # It's height is positive
-        if (delta_wavelength < max_delta) and (output_width < max_width) and (output_height > 0):
+        if (delta_wavelength < max_delta) and\
+                (output_width < max_width) and (output_height > 0):
             good_centers = np.append(good_centers, output_center)
             good_truths = np.append(good_truths, Line)
             good_widths = np.append(good_widths, output_width)
@@ -262,7 +265,8 @@ def wavelength_solution(directory, objecto, cenwave, pix_scale, max_wave=9999999
     print("Resolution = " + str(Resolution))
 
     # Plot Resolution of Lines
-    #plt.errorbar(np.arange(len(true_widths)), true_widths, Output_Good, fmt = '.')
+    # plt.errorbar(np.arange(len(true_widths)),
+    #             true_widths, Output_Good, fmt = '.')
     #plt.axhline(y = Resolution, color = 'k')
     #plt.axhline(y = Resolution + Resolution_std, color = 'k', linestyle = '--')
     #plt.axhline(y = Resolution - Resolution_std, color = 'k', linestyle = '--')
@@ -339,10 +343,6 @@ def wavelength_solution(directory, objecto, cenwave, pix_scale, max_wave=9999999
     # Do that for each image
     Inputs = glob.glob('%s/%s*SkyOut.fits' % (directory, objecto))
 
-    # Check that the files don't exist
-    if check_existence('%s/%s*OutWave.fits' % (directory, objecto), 'wavelength_solution'):
-        return
-
     for name in Inputs:
         print(name)
         iraf.hedit(images=name, fields='REFSPEC1',
@@ -359,7 +359,7 @@ def wavelength_solution(directory, objecto, cenwave, pix_scale, max_wave=9999999
                           nw='INDEF')
 
 
-def test_solution(directory, cenwave, pix_scale, bright_lines, width_guess=4, max_delta=10, fit_range=9, max_width=5, arc_name='HeNeAr'):
+def test_solution(directory, objecto, cenwave, pix_scale, bright_lines, width_guess=4, max_delta=10, fit_range=9, max_width=5, arc_name='HeNeAr'):
     '''
     Find an approximate solution to the wavelength by plotting and sliding
     the central wavelength and pixel scale.
@@ -520,16 +520,22 @@ parser = argparse.ArgumentParser()
 parser.add_argument("input_dir", help="Directory of raw data", type=str)
 args = parser.parse_args()
 
-obj_list = ["AT2018iao", "AT2019ahk", "AT2019aov", "AT2019aqv", "LTT3218"]
+obj_list = ["AT2018hyz"]
 
 for obj in obj_list:
+    if check_existence('%s/%s*OutWave.fits' % (args.input_dir + '/' + obj, obj),
+                       'lamCorr'):
+        continue
+
     best_cenwave, best_pix_scale = test_solution(args.input_dir + '/' + obj,
-                                                 6074.498,
-                                                 2.008,
+                                                 obj,
+                                                 6082.498,
+                                                 1.99,
                                                  bright_lines=[6598.9, 6717.0,
-                                                               7173.9, 7438.899, 8377.6070], arc_name='HeNeAr')
+                                                               7173.9, 7438.899, 8377.6070],
+                                                 arc_name='arc')
 
     wavelength_solution(args.input_dir + '/' + obj, obj,
-                        best_cenwave, best_pix_scale, arc_name='HeNeAr')
+                        best_cenwave, best_pix_scale, arc_name='arc')
 
     trim_spectrum(args.input_dir + '/' + obj, obj)

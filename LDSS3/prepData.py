@@ -55,6 +55,14 @@ def prepare_data(file_directory,
                 object_name = full_name
                 type_name = full_name
 
+            name_break = full_name.find(' ')
+            if name_break != -1:
+                object_name = full_name[:name_break]
+                type_name = full_name[1 + name_break:]
+            else:
+                object_name = full_name
+                type_name = full_name
+
             # Get the type of file (arc, flat, object, etc.)
             try:
                 file_type = File[0].header['IMAGETYP']

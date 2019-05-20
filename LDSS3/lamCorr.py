@@ -5,6 +5,7 @@ from scipy import optimize
 import glob
 from numpy.polynomial.legendre import Legendre
 from pyraf import iraf
+from pyraf.iraf import scopy
 import os
 from matplotlib.widgets import Slider, Button
 import subprocess
@@ -60,6 +61,31 @@ def normalize(x, mina, maxa):
     Normalization function to make the maximum = 1 and the minimum = -1
     '''
     return (2.0 * x - (maxa + mina)) / (maxa - mina)
+
+
+def iraf_scopy(directory, lammin, lammax):
+    input_list = "@%s/AllfilesBiasFlatSkyOutWave" % directory
+    output_list = "@%s/AllfilesBiasFlatSkyOutWaveTrim" % directory
+    w1 = lammin
+    w2 = lammax
+
+    scopy(input=input_list,
+          output=output_list,
+          w1=str(w1),
+          w2=str(w2),
+          apertures="",
+          beams="",
+          bands="",
+          apmodulus="0",
+          format="multispec",
+          renumber="no",
+          offset="0",
+          clobber="no",
+          merge="no",
+          rebin="no",
+          verbose="no",
+          mode='ql'
+          )
 
 
 def wavelength_solution(directory, objecto, cenwave, pix_scale,
@@ -490,14 +516,18 @@ def test_solution(directory, objecto, cenwave, pix_scale, bright_lines,
     return s_wave.val, s_scale.val
 
 
+def trim_spectrum(file_directory, objecto, lammin=3800, lammax=9600):
+    iraf_scopy(file_directory, lammin, lammax)
+
+
 parser = argparse.ArgumentParser()
 parser.add_argument("input_dir", help="Directory of raw data", type=str)
 args = parser.parse_args()
 
 # Objects with blue slit
-blue_obj = ["AT2018ibb", "AT2018jbv", "LTT3218-blue", "LTT3864-blue"]
-blue_lines = [4471.4470, 5015.6750, 6143.0623,
-              7635.1050, 8521.4410]
+blue_obj = []
+blue_lines = [4471.4470, 4713.1430, 4921.9290,
+              5015.6750, 7635.1050, 8521.4410]
 blue_cen = 5258.339556883246
 blue_scale = 1.950809061488673
 
@@ -506,16 +536,17 @@ for obj in blue_obj:
                                                  obj.split("-")[0],
                                                  blue_cen,
                                                  blue_scale,
-                                                 bright_lines=blue_lines, arc_name='arc')
+                                                 bright_lines=blue_lines, arc_name='HeNeAr')
 
     wavelength_solution(args.input_dir + '/' + obj, obj.split("-")[0],
-                        best_cenwave, best_pix_scale, arc_name='arc')
+                        best_cenwave, best_pix_scale, arc_name='HeNeAr')
+    trim_spectrum(args.input_dir + '/' + obj, obj, lammin=3500, lammax=9000)
 
 # Objects with center slit
-center_obj = ["AT2018lfe", "AT2019atx", "AT2019cbd", "AT2019cca", "AT2019yx",
-              "ZTF18acyxpfg", "ZTF19aacxrab", "LTT3218-center"]
-center_lines = [4471.4470, 5015.6750, 6678.2000,
-                7635.1050, 8521.4410, 9122.9660]
+center_obj = obj_list = ["AT2019yx", "LTT3218"]
+center_lines = [6678.2000, 7948.1750, 7635.1050,
+                8264.5210, 8521.4410, 8667.9430,
+                9122.9660, 9224.4980, 9657.7840]
 center_cen = 6416.495692200249
 center_scale = 2.0597818374454278
 
@@ -528,3 +559,4 @@ for obj in center_obj:
 
     wavelength_solution(args.input_dir + '/' + obj, obj.split("-")[0],
                         best_cenwave, best_pix_scale, arc_name='arc')
+    trim_spectrum(args.input_dir + '/' + obj, obj, lammin=4000, lammax=10000)
