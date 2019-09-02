@@ -27,7 +27,7 @@ def check_existence(file_name, function, verbose = True):
 
     '''
 
-    # Check that the files don't exist
+    # Chaeck that the files don't exist
     exists   = subprocess.Popen('ls ' + file_name, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = exists.communicate()
 
@@ -290,7 +290,7 @@ def wavelength_solution(directory, objecto, cenwave, pix_scale, max_wave = 99999
 
     for name in Inputs:
         print (name)
-        iraf.hedit(images = name, fields = 'REFSPEC1', value = filename, add = 'yes', update = 'yes')
+        iraf.hedit(images = str(name), fields = 'REFSPEC1', value = str(filename), add = 'yes', update = 'yes')
 
         # Do wavelength correction for each image
         iraf.noao.dispcor(input = name, 
@@ -452,3 +452,8 @@ def example():
 
     # Find the actual wavelength solution
     wavelength_solution('AT2018lfe', 'AT2018lfe', best_cenwave , best_pix_scale , arc_name = 'HeNeAr')
+
+# IMACS Vph-all
+#best_cenwave, best_pix_scale = test_solution('AT2019itq', 6760.598193256596, 1.2924859110989577, bright_lines = [5875.6201,6143.0620,6965.4302,7065.1899,7383.9790,7635.1060,8115.311], arc_name = 'HeArNe')
+
+#wavelength_solution('AT2019itq', 'spec', best_cenwave , best_pix_scale, arc_name = 'HeNeAr', min_wave = 5500, max_wave = 7800) 

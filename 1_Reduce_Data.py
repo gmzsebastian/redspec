@@ -47,7 +47,7 @@ def check_existence(file_name, function, verbose = True):
     else:
         return False
 
-def create_lists_science(directory, objecto, extension):
+def create_lists_science(directory, objecto):
     '''
     Create a series of lists of the science files to be read in by
     IRAF. Each list will contain every fits file in the specified
@@ -75,10 +75,7 @@ def create_lists_science(directory, objecto, extension):
     os.system("sed 's/.fits/Out.fits/g' %s/AllfilesBiasFlatSky > %s/AllfilesBiasFlatSkyOut"%(directory, directory))
     os.system("sed 's/.fits/Wave.fits/g' %s/AllfilesBiasFlatSkyOut > %s/AllfilesBiasFlatSkyOutWave"%(directory, directory))
 
-    if extension != '':
-        os.system("sed 's/.fits/.fits[%s]/g' %s/Allfiles > %s/Allfiles%s"%(extension, directory, directory, extension))
-
-def create_lists_flats(directory, objecto, extension):
+def create_lists_flats(directory, objecto = 'flat'):
     '''
     Create a series of lists of the flat files to be read in by
     IRAF. Each list will contain every fits file in the specified
@@ -100,10 +97,7 @@ def create_lists_flats(directory, objecto, extension):
     os.system('ls %s/%s*.fits > %s/flatlist'%(directory, objecto, directory))
     os.system("sed 's/.fits/_Bias.fits/g' %s/flatlist > %s/flatbiaslist"%(directory, directory))
 
-    if extension != '':
-        os.system("sed 's/.fits/.fits[%s]/g' %s/flatlist > %s/flatlist%s"%(extension, directory, directory, extension))
-
-def create_lists_lamp(directory, objecto, extension):
+def create_lists_lamp(directory, objecto = 'arc'):
     '''
     Create a series of lists of the lamp files to be read in by
     IRAF. Each list will contain every fits file in the specified
@@ -127,10 +121,7 @@ def create_lists_lamp(directory, objecto, extension):
     os.system("sed 's/.fits/_BiasFlat.fits/g' %s/lamplist > %s/lamplistbiasflat"%(directory, directory))
     os.system("sed 's/.fits/Out.fits/g' %s/lamplistbiasflat > %s/lamplistbiasflatout"%(directory, directory))
 
-    if extension != '':
-        os.system("sed 's/.fits/.fits[%s]/g' %s/lamplist > %s/lamplist%s"%(extension, directory, directory, extension))
-
-def iraf_zerocombine(directory, extension = ''):
+def iraf_zerocombine(directory):
     '''
     Function will create a list of bias files out of every .fits file in the
     specified directory. It will then combine all of those files into a single
@@ -150,18 +141,12 @@ def iraf_zerocombine(directory, extension = ''):
 
     # Create list of bias files
     os.system("ls " + directory + "/*.fits > " + directory + "/biaslist")
-    bias_list = 'biaslist'
-
+    
     # Test to see if the Bias.fits file already exists
     if check_existence(directory + '/Bias.fits', 'iraf_zerocombine'):
         return
 
-    # Add extension if specified
-    if extension != '':
-        os.system("sed 's/.fits/.fits[%s]/g' %s/biaslist > %s/biaslist%s"%(extension, directory, directory, extension))
-        bias_list = 'biaslist_' + extension
-
-    zerocombine(input   = '@%s/%s'%(directory, bias_list), # List of zero images to combine, start with @ for a list      
+    zerocombine(input   = '@%s/biaslist'%directory,  # List of zero images to combine, start with @ for a list      
                 output  = '%s/Bias.fits'%directory,  # Output bias level name
                 combine = 'median',                  # Type of combine operation (average or median)
                 reject  = 'avsigclip',               # Type of rejection algorithm
@@ -199,7 +184,7 @@ def iraf_zerocombine(directory, extension = ''):
 
     print('Saved Bias.fits to %s/ \n'%directory)
 
-def iraf_ccdproc(directory, file_type, bias_file, flat_file = '', extension = ''):
+def iraf_ccdproc(directory, file_type, bias_file, flat_file = ''):
     '''
     Do the bias and flats correction for a series of fits files.
     If the files are flats, then it doesn't do a flat correction.
@@ -227,21 +212,21 @@ def iraf_ccdproc(directory, file_type, bias_file, flat_file = '', extension = ''
 
     # If correcting flat files, don't do flat corrections
     if (file_type == 'flat') or (file_type == 'flats') or (file_type == 'BClamp'):
-        images_in  = '@%s/flatlist%s'%(directory, extension)
+        images_in  = '@%s/flatlist'%directory
         output_in  = '@%s/flatbiaslist'%directory
         flat       = ''
         flatcor_in = 'no'
 
     # If correcting the lamp files, do flat correction
-    elif file_type in ['lamp', 'arc', 'HeNeAr', 'henear', 'arcs']:
-        images_in  = '@%s/lamplist%s'%(directory, extension)
+    elif file_type in ['lamp', 'arc', 'HeNeAr', 'henear', 'arcs', 'HeArNe']:
+        images_in  = '@%s/lamplist'%directory
         output_in  = '@%s/lamplistbiasflat'%directory
         flat       = flat_file
         flatcor_in = 'yes'
 
     # If correcting sceicne files, do flat correction
     else:
-        images_in  = '@%s/Allfiles%s'%(directory, extension)
+        images_in  = '@%s/Allfiles'%directory
         output_in  = '@%s/AllfilesBiasFlat'%directory
         flat       = flat_file
         flatcor_in = 'yes'
@@ -493,7 +478,7 @@ def iraf_background(directory, objecto, fit_sample, fit_order = 20):
                function    = 'legendre',                            # Fitting function
                order       =  str(fit_order),                       # Order of fitting function
                low_reject  = '3.0',                                 # Low sigma rejection factor
-               high_reject = '3.0',                                 # High sigma rejection factor
+               high_reject = '2.0',                                 # High sigma rejection factor
                niterate    = '10',                                  # Number of rejection iterations
                grow        = '0.0',                                 # Rejection growing radius
                graphics    = 'stdgraph',                            # Graphics for IRAF to use
@@ -626,15 +611,15 @@ def iraf_apall(directory, objecto, file_type, trace_order = 3):
           pfit          = 'fit1d',         # Profile fitting type (fit1d or fit2d)
           clean         = 'yes',           # Detect and replace bad pixels?
           saturation    = 'INDEF',         # Saturation level
-          readnoise     = 'RDNOISE',       # Read out noise sigma
-          gain          = 'GAIN',          # Photon gain
+          readnoise     = 'enoise',       # Read out noise sigma
+          gain          = 'egain',          # Photon gain
           lsigma        = '4.0',           # Lower region threshold
           usigma        = '4.0',           # Upper rejection threshold
           nsubaps       = '1',             # Number of subapertures per aperture
           mode          = 'ql',            # IRAF mode
           )
 
-def individual_flats(directory, objecto, bias_file = 'bias/Bias.fits', response_sample = '10:2670', fit_order = 20, extension = ''):
+def individual_flats(directory, objecto, bias_file = 'bias/Bias.fits', response_sample = '10:2670', fit_order = 20):
     '''
     If there was only one set of flats to be used for multiple objects, then use this function.
 
@@ -649,7 +634,7 @@ def individual_flats(directory, objecto, bias_file = 'bias/Bias.fits', response_
     '''
 
     # Create lists of Flats
-    create_lists_flats(directory, objecto, extension)
+    create_lists_flats(directory, objecto = objecto)
     # Bias correct the flats
     iraf_ccdproc(directory, 'flat', bias_file = bias_file)
     # Create master Flat file
@@ -657,7 +642,14 @@ def individual_flats(directory, objecto, bias_file = 'bias/Bias.fits', response_
     # Check that the master Flat file has no 0's
     check_0(directory + '/Flat_norm.fits')
 
-def reduce_data(directory, objecto, do_individual_flats = True, flat_file = '', arc_name = 'arc', flat_name = 'flat', extension = ''):
+directory = 'AT2019itq'
+objecto   = 'AT2019itq'
+arc_name  = 'HeArNe'
+flat_name = 'QFlat'
+do_individual_flats = True
+flat_file = ''
+
+def reduce_data(directory, objecto, do_individual_flats = True, flat_file = '', arc_name = 'arc', flat_name = 'flat'):
     '''
     Big function that encompases all of the other data reduction functions.
     Must be run in sudo, maybe it needs to run in Python2. If the file 
@@ -674,28 +666,28 @@ def reduce_data(directory, objecto, do_individual_flats = True, flat_file = '', 
     '''
 
     # Create lists of all files
-    create_lists_science(directory, objecto, extension)
-    create_lists_lamp(directory, arc_name, extension)
+    create_lists_science(directory, objecto)
+    create_lists_lamp(directory, objecto = arc_name)
 
     if do_individual_flats:
         # Create lists of Flats
-        create_lists_flats(directory, flat_name, extension)
+        create_lists_flats(directory, objecto = flat_name)
         # Bias correct the flats
-        iraf_ccdproc(directory, 'flat', bias_file = 'bias/Bias.fits', extension = extension)
+        iraf_ccdproc(directory, 'flat', bias_file = 'bias/Bias.fits')
         # Create master Flat file
-        iraf_flatcombine(directory, response_sample = '*', fit_order = 40)
+        iraf_flatcombine(directory, response_sample = '*', fit_order = 50)
         # Check that the master Flat file has no 0's
         check_0(directory + '/Flat_norm.fits')
         # Bias and Flat correct the science and lamps
-        iraf_ccdproc(directory, objecto,  bias_file = 'bias/Bias.fits', flat_file = directory + '/Flat_norm.fits', extension = extension)
-        iraf_ccdproc(directory, arc_name, bias_file = 'bias/Bias.fits', flat_file = directory + '/Flat_norm.fits', extension = extension)
+        iraf_ccdproc(directory, objecto,  bias_file = 'bias/Bias.fits', flat_file = directory + '/Flat_norm.fits')
+        iraf_ccdproc(directory, arc_name, bias_file = 'bias/Bias.fits', flat_file = directory + '/Flat_norm.fits')
     else:
         # Bias and Flat correct the science and lamps
-        iraf_ccdproc(directory, objecto,  bias_file = 'bias/Bias.fits', flat_file = flat_file, extension = extension)
-        iraf_ccdproc(directory, arc_name, bias_file = 'bias/Bias.fits', flat_file = flat_file, extension = extension)
+        iraf_ccdproc(directory, objecto,  bias_file = 'bias/Bias.fits', flat_file = flat_file)
+        iraf_ccdproc(directory, arc_name, bias_file = 'bias/Bias.fits', flat_file = flat_file)
 
     # Substract the background from the images
-    iraf_background(directory, objecto, fit_sample = '*', fit_order = 10)
+    iraf_background(directory, objecto, fit_sample = '*', fit_order = 5)
 
     # Extract the Source spectra
     iraf_apall(directory, objecto, 'science', trace_order = 3) 
@@ -721,3 +713,10 @@ def example():
     # And then specifying where to find them
     reduce_data('AT2018lfe', 'AT2018lfe' , do_individual_flats = False, flat_file = 'flats_1.0/Flat_norm.fits' )
     reduce_data('AT2019go' , 'AT2019go'  , do_individual_flats = False, flat_file = 'flats_1.25/Flat_norm.fits')
+
+# Create the master Bias.fits file
+#iraf_zerocombine('bias')
+
+# Reduce data where every target has its own flat
+#reduce_data('AT2019itq', 'spec', arc_name = 'HeNeAr', flat_name = 'Qflat') 
+

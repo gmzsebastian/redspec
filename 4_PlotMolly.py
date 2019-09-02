@@ -149,7 +149,7 @@ def generate_output(directory, objecto, flux_corrected = True, suffix = ''):
         np.savetxt(outfile_raw, np.transpose(output_raw), fmt='%9.9E')
         print("Saved " + outfile_raw)
 
-def plot_object(directory, objecto, suffix = ''):
+def plot_object(directory, objecto, object_name, suffix = ''):
     '''
     Plot all the spectra by reading in the three column files. 
 
@@ -183,7 +183,7 @@ def plot_object(directory, objecto, suffix = ''):
         plt.legend(loc = 'upper left')
         plt.xlabel("Wavelength")
         plt.ylabel("Normalized Flux")
-        plt.title(objecto)
+        plt.title(object_name)
         plt.ylim(-1, 5)
         plt.xlim(min(wavelength), max(wavelength))
         plt.savefig(optimal_files[i][:-18] + '.jpg', dpi = 150)
@@ -212,15 +212,15 @@ def plot_object(directory, objecto, suffix = ''):
     plt.plot(wavelength, flux / np.average(flux), linewidth = 0.5)
     plt.xlabel("Wavelength")
     plt.ylabel("Normalized Flux")
-    plt.title(objecto)
+    plt.title(object_name)
     plt.ylim(-1, 5)
     plt.xlim(min(wavelength), max(wavelength))
-    plt.savefig('%s/%s_average%s.jpg'%(directory, objecto, suffix), dpi = 150)
+    plt.savefig('%s/%s_average%s.jpg'%(directory, object_name, suffix), dpi = 150)
     plt.clf()
 
     # Save Averaged Spectra
     array = (wavelength, flux, sigma)
-    np.savetxt('%s/%s_average%s.txt'%(directory, objecto, suffix), np.transpose(array))
+    np.savetxt('%s/%s_average%s.txt'%(directory, object_name, suffix), np.transpose(array))
 
 def molly_parameter(directory, objecto, flux_corrected = True, suffix = ''):
     '''
@@ -371,12 +371,15 @@ def molly_parameter(directory, objecto, flux_corrected = True, suffix = ''):
     instructions_file.write(instructions)
     print("Saved " + "instructions_" + objecto + suffix + ".txt")
 
-def all_in_one(directory, objecto, flux_corrected = True, suffix = ''):
-    os.system('mv %s A'%directory)
-    create_individual('A', objecto, flux_corrected, suffix)
-    generate_output('A', objecto, flux_corrected, suffix)
-    plot_object('A', objecto, suffix)
-    os.system('mv A %s'%directory)
+def all_in_one(directory, objecto, flux_corrected = True, suffix = '', object_name = ''):
+    if object_name == '':
+        object_name = objecto
+    #os.system('mv %s A'%directory)
+    #directory = 'A'
+    create_individual(directory, objecto, flux_corrected, suffix)
+    generate_output(directory, objecto, flux_corrected, suffix)
+    plot_object(directory, objecto, object_name, suffix)
+    #os.system('mv A %s'%directory)
 
 def example():
     '''
@@ -388,4 +391,5 @@ def example():
     # If you wish to create a file to be read in by Molly, do:
     molly_parameter('AT2018lfe', 'AT2018lfe')
     # WARNING, this function has not been tested in whiiiiile, might break a lot
-    
+
+#all_in_one('AT2019itq', 'spec', object_name = 'AT2019itq')

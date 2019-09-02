@@ -4,7 +4,7 @@ import glob
 from astropy.table import Table
 import os
 
-def prepare_data(file_directory = 'raw_data/*.fits', crop = False, rotate = False, flip = False, variables = ['DISPERSR', 'FILTER']):
+def prepare_data(file_directory = 'raw_data/*.fits', crop = False, rotate = False, flip = False, variables = ['DISPERSR', 'FILTER'], break_character = '-', filter_name = 'Spectroscopic2'):
     '''
     Copy the raw science image into directories and rename them to something useful.
     Also crop, rotate, or flip them if specified (not yet implemented)
@@ -15,6 +15,8 @@ def prepare_data(file_directory = 'raw_data/*.fits', crop = False, rotate = Fals
     crop          : Crop the images?
     rotate        : Rotate the images?
     flip          : Flip the images?
+    filter_name   : IMACS = Spectroscopic2
+                    Something = Bessell_R2
 
     Returns
     ---------------------
@@ -33,23 +35,26 @@ def prepare_data(file_directory = 'raw_data/*.fits', crop = False, rotate = Fals
     for i in range(len(Files)):
         # Open File
         print(Files[i])
-        File = fits.open(Files[i])
+        File = fits.open(Files[i], ignore_missing_end=True)
         file_kind = File[0].header['DISPERSR']
         filter_kind = File[0].header['FILTER']
+        full_name   = File[0].header['OBJECT']
 
-        if ('Gri' in file_kind) or ('Bessell_R2' in filter_kind):
+        is_it_calibration = np.array([k in full_name for k in ['BIAS', 'bias', 'Bias', 'Flat', 'FLAT', 'flat']])
+
+        if ('Gri' in file_kind) or (filter_name in filter_kind) or is_it_calibration.any():
             # Get File name
             filename    = Files[i][Files[i].find('/')+1:Files[i].find('.fits')]
             full_name   = File[0].header['OBJECT']
 
             # Break the name in two if there are two words
-            name_break  = full_name.find('_')
+            name_break  = full_name.find(break_character)
             if name_break != -1:
                 object_name = full_name[:name_break]
-                type_name   = full_name[1+name_break:]
+                type_name   = full_name[1+name_break:].replace(' ', '')
             else:
                 object_name = full_name
-                type_name   = full_name
+                type_name   = full_name.replace(' ', '')
 
             # Get the type of file (arc, flat, object, etc.)
             try:
@@ -90,7 +95,7 @@ def prepare_data(file_directory = 'raw_data/*.fits', crop = False, rotate = Fals
                         file_name = '%s/%s_%s.fits'%('bias', type_name, filename)
                     else:
                         file_name = '%s/%s_%s.fits'%(directory_name, type_name, filename)
-                    fits_file = fits.open(file_name)
+                    fits_file = fits.open(file_name, ignore_missing_end=True)
                     fits_file[0].data = np.rot90(fits_file[0].data, k = 3)
 
                     # Modify the bias and data sec variables
@@ -124,7 +129,7 @@ def prepare_data(file_directory = 'raw_data/*.fits', crop = False, rotate = Fals
                     ymin, ymax = 343, 800
 
                     # Crop the data
-                    fits_file = fits.open(crop_name)
+                    fits_file = fits.open(crop_name, ignore_missing_end=True)
                     fits_file[0].data = fits_file[0].data[ymin:ymax,xmin:xmax]
                     fits_file.writeto(crop_name, overwrite = True)
                     fits.setval(crop_name,  'BIASSEC',  value='[%s:%s,%s:%s]'%(xmin - xmin + 1, xmax - xmin, ymin - ymin + 1, ymax - ymin))
@@ -168,14 +173,14 @@ def extract_fits_info(file_directory, variable_names, data_index = 0, return_cou
     file_list = Table(names = variables, dtype=['S']*len(variables))
 
     # Get the date of the first file for the file name
-    File0 = fits.open(Files[0])
+    File0 = fits.open(Files[0], ignore_missing_end=True)
     Date0 = str(File0[0].header['DATE-OBS'])
 
     # Extract data for each file
     for i in range(len(Files)):
         # Open File
         print(Files[i])
-        File = fits.open(Files[i])
+        File = fits.open(Files[i], ignore_missing_end=True)
         
         # Get File name
         filename = Files[i][Files[i].find('/')+1:Files[i].find('.fits')]
@@ -208,13 +213,9 @@ def extract_fits_info(file_directory, variable_names, data_index = 0, return_cou
     # Save output table
     file_list.write("Nightlog_%s.txt"%Date0, format='ascii.tab')
 
-def example():
-    '''
-    Example of how to use this script
-    '''
+# Something?
+#extract_fits_info('raw_data/*.fits', ['OBJECT', 'EXPTYPE', 'EXPTIME', 'RA', 'DEC', 'DATE-OBS', 'AIRMASS', 'DISPERSR'])
 
-    # Create a logfile for the night
-    extract_fits_info('raw_data/*.fits', ['OBJECT', 'EXPTYPE', 'EXPTIME', 'RA', 'DEC', 'DATE-OBS', 'TIME-OBS', 'FILTER', 'GRISM'])
-
-    # Prepare all the data into the right format, with the suffix names specified by variables
-    prepare_data(variables = [''], rotate = True, crop = True)
+##### IMACS #####
+#extract_fits_info('raw_data/*.fits', ['OBJECT', 'EXPTYPE', 'EXPTIME', 'RA', 'DEC', 'DATE-OBS', 'TIME-OBS', 'FILTER', 'DISPERSR', 'BINNING', 'AIRMASS'])
+#prepare_data(variables = [''], rotate = True, crop = True, break_character = ' ')
