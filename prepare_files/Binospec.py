@@ -4,17 +4,17 @@ import glob
 from astropy.table import Table
 import os
 
-def prepare_data(file_directory = 'raw_data/*.fits', crop = False, rotate = False, flip = False):
+def prepare_data(file_directory = 'raw_data/*.fits', crop = False, flip = False, variables = ['DISPERSR', 'FILTER'], disperser_name = 'x270', header_extension = 0, data_extension = 0):
     '''
     Copy the raw science image into directories and rename them to something useful.
     Also crop, rotate, or flip them if specified (not yet implemented)
 
     Parameters
     ---------------------
-    file_directory: Directory where to search for files in glob format, i.e. 'data/*.fits'
-    crop          : Crop the images?
-    rotate        : Rotate the images?
-    flip          : Flip the images?
+    file_directory : Directory where to search for files in glob format, i.e. 'data/*.fits'
+    crop           : Crop the images?
+    flip           : Flip the images?
+    disperser_name : Only read in images with this disperser
 
     Returns
     ---------------------
@@ -22,7 +22,7 @@ def prepare_data(file_directory = 'raw_data/*.fits', crop = False, rotate = Fals
     '''
 
     # Import file names
-    Files = glob.glob(file_directory)
+    Files = sorted(glob.glob(file_directory))
 
     # Make sure there are files
     if len(Files) == 0:
@@ -33,40 +33,86 @@ def prepare_data(file_directory = 'raw_data/*.fits', crop = False, rotate = Fals
     for i in range(len(Files)):
         # Open File
         print(Files[i])
-        File = fits.open(Files[i])
+        File = fits.open(Files[i], ignore_missing_end=True)
 
-        # Get File name
-        filename = Files[i][Files[i].find('/')+1:Files[i].find('.fits')]
+        # Figure out what the file is
+        spec_vs_phot = File[1].header['MASK']
+        # Is it spectra?
+        if 'Longslit' in spec_vs_phot:
+            image_type = 'spectra'
+        elif 'imaging' in spec_vs_phot:
+            image_type = 'image'
+        else:
+            image_type = 'other'
 
-        # Get the type of file (arc, flat, object, etc.)
-        file_type = File[0].header['IMAGETYP']
+        # Is it a flat?
+        screen = File[header_extension].header['SCRN']
+        if (screen == 'deployed') and (image_type == 'spectra'):
+            image_type = 'flat'
 
-        # If it is not an object, copy into the current directory
-        if file_type == 'zero':
+        # Is it actually a lamp?
+        lamp = File[header_extension].header['HENEAR']
+        if (lamp == 'on') and (image_type == 'flat'):
+            image_type = 'HeNeAr'
+
+        # Is it a bias?
+        file_kind = File[header_extension].header['IMAGETYP']
+        if file_kind == 'bias':
+            image_type = 'bias'
+
+        # Get file and object name
+        filename    = Files[i][Files[i].find('/')+1:Files[i].find('.fits')]
+        object_name = File[header_extension].header['OBJECT']
+
+        # Get the disperser and overwrite if not consistent
+        disperser = File[header_extension].header['DISPERS1']
+        if (disperser != disperser_name) and (image_type != 'bias'):
+            image_type = 'other'
+
+        print(image_type, ' - ', object_name)
+
+        # If the object is a bias frame, copy that into the bias folder
+        if image_type == 'bias':
             if len(glob.glob('bias')) == 0:
                 os.system('mkdir bias')
-            os.system('cp %s %s/%s_%s.fits'%(Files[i], 'bias', File[0].header['OBJECT'], filename))
-        elif file_type != 'object':
-            os.system('cp %s %s_%s.fits'%(Files[i], File[0].header['OBJECT'], filename))
-        else:
-            # Print relevant information
-            objecto   = File[0].header['OBJECT']
-            slit      = File[0].header['APERTURE']
-            disperser = File[0].header['DISPERSE']
-            cenwave   = File[0].header['CENWAVE']
-            print('Object \t Slit \t\t Disperser \t Central Wave')
-            print('%s \t %s \t %s \t %s'%(objecto, slit, disperser, cenwave))
-            print('\n')
+            input_image_name = '%s/%s_%s.fits'%('bias', 'bias', filename)
 
-            directory_name = '%s_%s_%s_%s'%(objecto, slit, disperser, cenwave)
+        # If the object is a flat, spectra, or lamp copy that into it's respective object folder name
+        if image_type in ['flat', 'spectra', 'HeNeAr']:
             # Make directory with relevant information
-            if len(glob.glob(directory_name)) == 0:
-                os.system("mkdir %s"%directory_name)
+            if len(glob.glob(object_name)) == 0:
+                os.system("mkdir %s"%object_name)
+            input_image_name = '%s/%s_%s.fits'%(object_name, image_type, filename)
 
+        if image_type in ['bias', 'flat', 'spectra', 'HeNeAr']:
             # Copy the science file in the directory and rename it to something useful
-            os.system('cp %s %s/%s_%s.fits'%(Files[i], directory_name, File[0].header['OBJECT'], filename))
+            output_image_name = input_image_name[:input_image_name.find('sci')] + input_image_name[input_image_name.find('g_201')+10:]
+            os.system('cp %s %s'%(Files[i], output_image_name))
 
-def extract_fits_info(file_directory, variable_names, data_index = 0, return_counts = True):
+            ############ Images are Copied, now Overwrite and Modify ############
+            if crop:
+                # Crop Limits for Binospec
+                xmin, xmax =    1, 4095
+                ymin, ymax = 1700, 2400
+
+                # Crop the data
+                fits_file = fits.open(output_image_name, ignore_missing_end=True)
+                fits_file[data_extension].data = fits_file[data_extension].data[ymin:ymax,xmin:xmax]
+                fits_file[data_extension].writeto(output_image_name, overwrite = True, output_verify = 'ignore')
+                #fits.setval(output_image_name,  'BIASSEC',  value='[%s:%s,%s:%s]'%(xmin - xmin + 1, xmax - xmin, ymin - ymin + 1, ymax - ymin), ext = extension)
+                fits.setval(output_image_name,  'DATASEC',  value='[%s:%s,%s:%s]'%(xmin - xmin + 1, xmax - xmin, ymin - ymin + 1, ymax - ymin), ext = header_extension)
+                fits.setval(output_image_name,  'DISPAXIS', value='1', ext = header_extension)
+                fits.setval(output_image_name,  'enoise'  , value='1', ext = header_extension)
+                print('Cropped ' + output_image_name)
+
+            if flip:
+                # Flip the data
+                fits_file = fits.open(output_image_name, ignore_missing_end=True)
+                fits_file[1].data = np.flip(fits_file[1].data, axis = 1)
+                fits_file.writeto(output_image_name, overwrite = True)
+                print('Flipped ' + output_image_name)
+
+def extract_fits_info(file_directory, variable_names, data_index = 0, header_index = 0, return_counts = True):
     '''
     Extract relevant information from the header of several fits files.
 
@@ -83,7 +129,7 @@ def extract_fits_info(file_directory, variable_names, data_index = 0, return_cou
     '''
 
     # Import file names
-    Files = glob.glob(file_directory)
+    Files = sorted(glob.glob(file_directory))
 
     # Make sure there are files
     if len(Files) == 0:
@@ -102,25 +148,25 @@ def extract_fits_info(file_directory, variable_names, data_index = 0, return_cou
     file_list = Table(names = variables, dtype=['S']*len(variables))
 
     # Get the date of the first file for the file name
-    File0 = fits.open(Files[0])
-    Date0 = str(File0[0].header['DATE-OBS'])
+    File0 = fits.open(Files[0], ignore_missing_end=True)
+    Date0 = str(File0[header_index].header['DATE-OBS'])
 
     # Extract data for each file
     for i in range(len(Files)):
         # Open File
         print(Files[i])
-        File = fits.open(Files[i])
+        File = fits.open(Files[i], ignore_missing_end=True)
         
         # Get File name
         filename = Files[i][Files[i].find('/')+1:Files[i].find('.fits')]
 
         # Get value of maximum pixel if specified
         if return_counts:
-            max_counts = np.max(File[data_index].data)
+            max_counts = np.nanmax(File[data_index].data)
             max_value  = len(variables)
         else:
             max_counts = '--'
-            max_value  = len(variables) - 1
+            max_value  = len(variables)
 
         # Create array with only the file name
         parameters = np.array([filename])
@@ -131,7 +177,7 @@ def extract_fits_info(file_directory, variable_names, data_index = 0, return_cou
                 if variables[j] == 'MAX_COUNTS':
                     parameters = np.append(parameters, max_counts)
                 else:
-                    parameters = np.append(parameters, File[0].header[variables[j]])
+                    parameters = np.append(parameters, File[header_index].header[variables[j]])
             # If the variable is not found, add '--'
             except:
                 print('%s not found'%variables[j])
@@ -140,8 +186,11 @@ def extract_fits_info(file_directory, variable_names, data_index = 0, return_cou
         file_list.add_row(parameters)
 
     # Save output table
-    file_list.write("Nightlog_%s.txt"%Date0, format='ascii.tab')
+    file_list.write("Nightlog_%s.txt"%Date0, format='ascii.fixed_width', delimiter=None)
 
-extract_fits_info('raw_data/*.fits', ['OBJECT', 'EXPTIME', 'RA', 'DEC', 'DATE-OBS', 'UT', 'AIRMASS', 'APERTURE', 'DISPERSE', 'CENWAVE'])
+#### Binospec ####
+#extract_fits_info('Binospec*/raw_data/*.fits', ['OBJECT', 'IMAGETYP', 'SCRN', 'EXPTIME', 'RA', 'DEC', 'DATE-OBS', 'FILTER', 'MASK', 'DISPERS1', 'DISPERS2', 'HENEAR', 'MJD', 'AIRMASS', 'EXPMODE', 'PI'], header_index = 1, data_index = 1, return_counts = False)
+prepare_data(variables = [''], crop = True, flip = False, header_extension = 1, data_extension = 1)
+#prepare_data(variables = [''], crop = True, flip = True, header_extension = 1, data_extension = 1)
 
-prepare_data()
+

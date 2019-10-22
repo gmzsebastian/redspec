@@ -149,7 +149,7 @@ def generate_output(directory, objecto, flux_corrected = True, suffix = ''):
         np.savetxt(outfile_raw, np.transpose(output_raw), fmt='%9.9E')
         print("Saved " + outfile_raw)
 
-def plot_object(directory, objecto, object_name, suffix = ''):
+def plot_object(directory, objecto, object_name, suffix = '', use_optimal = True):
     '''
     Plot all the spectra by reading in the three column files. 
 
@@ -178,8 +178,8 @@ def plot_object(directory, objecto, object_name, suffix = ''):
         wavelength, optimal_flux, sigma = np.genfromtxt(optimal_files[i], unpack = True)
         wavelength, raw_flux, sigma     = np.genfromtxt(raw_files[i], unpack = True)
 
-        plt.plot(wavelength, optimal_flux / np.average(optimal_flux), alpha = 0.7, color = 'r', label = 'Optimal Flux')
-        plt.plot(wavelength, raw_flux / np.average(raw_flux),  linestyle = '--', alpha = 0.7, color = 'b', label = 'Raw Flux')
+        plt.plot(wavelength, optimal_flux / np.average(optimal_flux[500:]), alpha = 0.7, color = 'r', label = 'Optimal Flux')
+        plt.plot(wavelength, raw_flux / np.average(raw_flux[500:]),  linestyle = '--', alpha = 0.7, color = 'b', label = 'Raw Flux')
         plt.legend(loc = 'upper left')
         plt.xlabel("Wavelength")
         plt.ylabel("Normalized Flux")
@@ -189,12 +189,17 @@ def plot_object(directory, objecto, object_name, suffix = ''):
         plt.savefig(optimal_files[i][:-18] + '.jpg', dpi = 150)
         plt.clf()
 
+    if use_optimal:
+        use_files = optimal_files
+    else:
+        use_files = raw_files
+
     # Make an average plot
     if size == 1:
-        wavelength, flux, sigma = np.genfromtxt(optimal_files[0], unpack = True)
+        wavelength, flux, sigma = np.genfromtxt(use_files[0], unpack = True)
     elif size > 1:
-        for i in range(len(optimal_files)):
-            wavelength_out, flux_out, sigma_out = np.genfromtxt(optimal_files[i], unpack = True)
+        for i in range(len(use_files)):
+            wavelength_out, flux_out, sigma_out = np.genfromtxt(use_files[i], unpack = True)
             try:
                 wavelength_array = np.vstack((wavelength_array, wavelength_out))
                 flux_array       = np.vstack((flux_array      , flux_out      ))
@@ -209,7 +214,7 @@ def plot_object(directory, objecto, object_name, suffix = ''):
         sigma      = np.nanmedian(sigma_array,      axis = 0)
 
     # Plot Averaged Spectra
-    plt.plot(wavelength, flux / np.average(flux), linewidth = 0.5)
+    plt.plot(wavelength, flux / np.average(flux[500:]), linewidth = 0.5)
     plt.xlabel("Wavelength")
     plt.ylabel("Normalized Flux")
     plt.title(object_name)
@@ -371,15 +376,14 @@ def molly_parameter(directory, objecto, flux_corrected = True, suffix = ''):
     instructions_file.write(instructions)
     print("Saved " + "instructions_" + objecto + suffix + ".txt")
 
-def all_in_one(directory, objecto, flux_corrected = True, suffix = '', object_name = ''):
+def all_in_one(directory, objecto, flux_corrected = True, suffix = '', object_name = '', use_optimal = True):
     if object_name == '':
         object_name = objecto
-    #os.system('mv %s A'%directory)
-    #directory = 'A'
-    create_individual(directory, objecto, flux_corrected, suffix)
-    generate_output(directory, objecto, flux_corrected, suffix)
-    plot_object(directory, objecto, object_name, suffix)
-    #os.system('mv A %s'%directory)
+    os.system('mv %s A'%directory)
+    create_individual('A', objecto, flux_corrected, suffix)
+    generate_output('A', objecto, flux_corrected, suffix)
+    plot_object('A', objecto, object_name, suffix, use_optimal)
+    os.system('mv A %s'%directory)
 
 def example():
     '''
@@ -392,4 +396,4 @@ def example():
     molly_parameter('AT2018lfe', 'AT2018lfe')
     # WARNING, this function has not been tested in whiiiiile, might break a lot
 
-#all_in_one('AT2019itq', 'spec', object_name = 'AT2019itq')
+#all_in_one('PS17brq', 'spectra', object_name = 'PS17brq')
