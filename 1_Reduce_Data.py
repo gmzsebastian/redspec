@@ -731,12 +731,13 @@ def example():
     reduce_data('AT2019go' , 'AT2019go'  , do_individual_flats = False, flat_file = 'flats_1.25/Flat_norm.fits')
 
 # Create the master Bias.fits file
-iraf_zerocombine('bias', extension = 0)
+#iraf_zerocombine('bias', extension = 0)
 
 # IMACS
-#reduce_data('AT2018hyz', 'AT2018hyz', arc_name='HeNeAr' , flat_name = 'Qh')
+#reduce_data('AT2019rhb', 'AT2019rhb', arc_name='HeNeAr' , flat_name = 'Qh', gain_name = 'EGAIN', noise_name = 'ENOISE')
 
 # Binospec
+#iraf_zerocombine('bias', extension = 1)
 #reduce_data('Feige_110', 'spectra', arc_name = 'HeNeAr', flat_name = 'flat', extension = 1) 
 
 # FAST

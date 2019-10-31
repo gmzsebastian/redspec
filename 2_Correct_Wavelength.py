@@ -458,7 +458,8 @@ def example():
 #wavelength_solution('AT2019itq', 'spec', best_cenwave , best_pix_scale, arc_name = 'HeNeAr', min_wave = 5500, max_wave = 7800) 
 
 # Binospec x270
-#best_cenwave, best_pix_scale = test_solution('PS16aqy', 6490.860718286084, 1.3118433048735285, bright_lines = [4471.4790, 5015.6782, 5875.6201, 6678.1489, 7503.8682], arc_name = 'HeNeAr')
+#best_cenwave, best_pix_scale = test_solution('AT2019mzd', 6498.935234323291, 1.3153992225382212, bright_lines = [4471.4790, 5015.6782, 5875.6201, 6678.1489, 7503.8682, 8424.6475], arc_name = 'HeNeAr')
+#wavelength_solution('AT2019mzd', 'spec', best_cenwave , best_pix_scale, arc_name = 'HeNeAr', min_wave = 4000, max_wave = 8550)
 
 # FAST
 #best_cenwave, best_pix_scale = test_solution('BDp284211', 5423.685483021429, 1.4738304408766751, bright_lines = [3944.032, 3961.527, 6965.43, 7383.98], arc_name = 'COMP')

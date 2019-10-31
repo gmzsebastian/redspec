@@ -138,12 +138,15 @@ def prepare_data(file_directory = 'raw_data/*.fits', crop = False, rotate = Fals
                     else:
                         crop_name = '%s/%s_%s.fits'%(directory_name, type_name, filename)
 
-                    # IMACS
-                    #xmin, xmax = 500, 3900
-                    #ymin, ymax = 200, 900
+                    # IMACS 1x1
+                    #xmin, xmax = 60, 4105
+                    #ymin, ymax = 300, 800
+                    # IMACS 2x2
+                    xmin, xmax = 65, 2110
+                    ymin, ymax = 150, 400
                     # LDDS3
-                    xmin, xmax = 650, 4095
-                    ymin, ymax = 320, 620
+                    #xmin, xmax = 650, 4095
+                    #ymin, ymax = 320, 620
 
                     # Crop the data
                     fits_file = fits.open(crop_name, ignore_missing_end=True)
@@ -153,6 +156,114 @@ def prepare_data(file_directory = 'raw_data/*.fits', crop = False, rotate = Fals
                     fits.setval(crop_name,   datasec_key ,  value='[%s:%s,%s:%s]'%(xmin - xmin + 1, xmax - xmin, ymin - ymin + 1, ymax - ymin))
                     fits.setval(crop_name,  'DISPAXIS', value='1')
                     print('Cropped ' + crop_name)
+
+def prepare_binospec(file_directory = 'raw_data/*.fits', crop = True, flip = False, variables = [''], disperser_name = 'x270', header_extension = 1, data_extension = 2):
+    '''
+    Copy the raw science image into directories and rename them to something useful.
+    Also crop, rotate, or flip them if specified (not yet implemented)
+
+    Parameters
+    ---------------------
+    file_directory : Directory where to search for files in glob format, i.e. 'data/*.fits'
+    crop           : Crop the images?
+    flip           : Flip the images?
+    disperser_name : Only read in images with this disperser
+
+    Returns
+    ---------------------
+    Nothing, saves the .fits files to their correct directories.
+    '''
+
+    # Import file names
+    Files = sorted(glob.glob(file_directory))
+
+    # Make sure there are files
+    if len(Files) == 0:
+        print('No Files Found With %s'%file_directory)
+        return
+
+    # Prepare each file into the right format
+    for i in range(len(Files)):
+        # Open File
+        print(Files[i])
+        File = fits.open(Files[i], ignore_missing_end=True)
+
+        # Figure out what the file is
+        spec_vs_phot = File[1].header['MASK']
+        # Is it spectra?
+        if 'Longslit' in spec_vs_phot:
+            image_type = 'spectra'
+        elif 'imaging' in spec_vs_phot:
+            image_type = 'image'
+        else:
+            image_type = 'other'
+
+        # Is it a flat?
+        screen = File[header_extension].header['SCRN']
+        if (screen == 'deployed') and (image_type == 'spectra'):
+            image_type = 'flat'
+
+        # Is it actually a lamp?
+        lamp = File[header_extension].header['HENEAR']
+        if (lamp == 'on') and (image_type == 'flat'):
+            image_type = 'HeNeAr'
+
+        # Is it a bias?
+        file_kind = File[header_extension].header['IMAGETYP']
+        if file_kind == 'bias':
+            image_type = 'bias'
+
+        # Get file and object name
+        filename    = Files[i][Files[i].find('/')+1:Files[i].find('.fits')]
+        object_name = File[header_extension].header['OBJECT']
+
+        # Get the disperser and overwrite if not consistent
+        disperser = File[header_extension].header['DISPERS1']
+        if (disperser != disperser_name) and (image_type != 'bias'):
+            image_type = 'other'
+
+        print(image_type, ' - ', object_name)
+
+        # If the object is a bias frame, copy that into the bias folder
+        if image_type == 'bias':
+            if len(glob.glob('bias')) == 0:
+                os.system('mkdir bias')
+            input_image_name = '%s/%s_%s.fits'%('bias', 'bias', filename)
+
+        # If the object is a flat, spectra, or lamp copy that into it's respective object folder name
+        if image_type in ['flat', 'spectra', 'HeNeAr']:
+            # Make directory with relevant information
+            if len(glob.glob(object_name)) == 0:
+                os.system("mkdir %s"%object_name)
+            input_image_name = '%s/%s_%s.fits'%(object_name, image_type, filename)
+
+        if image_type in ['bias', 'flat', 'spectra', 'HeNeAr']:
+            # Copy the science file in the directory and rename it to something useful
+            output_image_name = input_image_name[:input_image_name.find('sci')] + input_image_name[input_image_name.find('g_201')+10:]
+            os.system('cp %s %s'%(Files[i], output_image_name))
+
+            ############ Images are Copied, now Overwrite and Modify ############
+            if crop:
+                # Crop Limits for Binospec
+                xmin, xmax =    1, 4095
+                ymin, ymax = 1700, 2400
+
+                # Crop the data
+                fits_file = fits.open(output_image_name, ignore_missing_end=True)
+                fits_file[data_extension].data = fits_file[data_extension].data[ymin:ymax,xmin:xmax]
+                fits_file[data_extension].writeto(output_image_name, overwrite = True, output_verify = 'ignore')
+                #fits.setval(output_image_name,  'BIASSEC',  value='[%s:%s,%s:%s]'%(xmin - xmin + 1, xmax - xmin, ymin - ymin + 1, ymax - ymin), ext = extension)
+                fits.setval(output_image_name,  'DATASEC',  value='[%s:%s,%s:%s]'%(xmin - xmin + 1, xmax - xmin, ymin - ymin + 1, ymax - ymin), ext = header_extension)
+                fits.setval(output_image_name,  'DISPAXIS', value='1', ext = header_extension)
+                fits.setval(output_image_name,  'enoise'  , value='1', ext = header_extension)
+                print('Cropped ' + output_image_name)
+
+            if flip:
+                # Flip the data
+                fits_file = fits.open(output_image_name, ignore_missing_end=True)
+                fits_file[1].data = np.flip(fits_file[1].data, axis = 1)
+                fits_file.writeto(output_image_name, overwrite = True)
+                print('Flipped ' + output_image_name)
 
 def extract_fits_info(file_directory, variable_names, data_index = 0, header_index = 0, return_counts = True):
     '''
@@ -239,7 +350,7 @@ def extract_fits_info(file_directory, variable_names, data_index = 0, header_ind
 
 #### Binospec ####
 #extract_fits_info('raw_data/*.fits', ['OBJECT', 'IMAGETYP', 'SCRN', 'EXPTIME', 'RA', 'DEC', 'DATE-OBS', 'FILTER', 'MASK', 'DISPERS1', 'DISPERS2', 'HENEAR', 'MJD', 'AIRMASS', 'EXPMODE', 'PI'], header_index = 1, data_index = 1, return_counts = False)
-#prepare_data(variables = [''], crop = True, flip = False, header_extension = 1, data_extension = 2)
+#prepare_binospec()
 
 #### FAST ####
 #extract_fits_info('raw_data/*.fits', ['OBJECT', 'EXPTIME', 'RA', 'DEC', 'DATE', 'APERTURE', 'DISPERSE'])
