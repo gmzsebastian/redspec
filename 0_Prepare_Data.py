@@ -239,7 +239,7 @@ def prepare_binospec(file_directory = 'raw_data/*.fits', crop = True, flip = Fal
 
         if image_type in ['bias', 'flat', 'spectra', 'HeNeAr']:
             # Copy the science file in the directory and rename it to something useful
-            output_image_name = input_image_name[:input_image_name.find('sci')] + input_image_name[input_image_name.find('g_201')+10:]
+            output_image_name = input_image_name[:input_image_name.find('sci')] + input_image_name[input_image_name.find('g_20')+10:]
             os.system('cp %s %s'%(Files[i], output_image_name))
 
             ############ Images are Copied, now Overwrite and Modify ############
