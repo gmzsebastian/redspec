@@ -83,7 +83,7 @@ def prepare_data(file_directory = 'raw_data/*.fits', crop = False, rotate = Fals
 
                 os.system('cp %s %s/%s_%s.fits'%(Files[i], directory_name, object_name, filename))
 
-            elif file_type in ['object', 'Object', 'COMP', 'ARC', 'OBJECT', 'arc', 'FLAT', 'Flat', 'flat']:
+            elif file_type in ['object', 'Object', 'COMP', 'ARC', 'OBJECT', 'arc', 'FLAT', 'Flat', 'flat', 'comp']:
                 print_name      = object_name
                 directory_name  = object_name
 
@@ -103,7 +103,7 @@ def prepare_data(file_directory = 'raw_data/*.fits', crop = False, rotate = Fals
                 # Copy the science file in the directory and rename it to something useful
                 os.system('cp %s %s/%s_%s.fits'%(Files[i], directory_name, type_name, filename))
 
-            if file_type in ['zero', 'Bias', 'Zero', 'bias', 'ZERO', 'object', 'Object', 'COMP', 'ARC', 'OBJECT', 'arc', 'FLAT', 'Flat', 'flat']:
+            if file_type in ['zero', 'Bias', 'Zero', 'bias', 'ZERO', 'object', 'Object', 'COMP', 'ARC', 'OBJECT', 'arc', 'FLAT', 'Flat', 'flat', 'comp']:
                 # Once saved, rotate or flip if specified
                 if rotate:
                     # Rotate the Data by 90 degrees. Top will be left
@@ -142,8 +142,11 @@ def prepare_data(file_directory = 'raw_data/*.fits', crop = False, rotate = Fals
                     #xmin, xmax = 60, 4105
                     #ymin, ymax = 300, 800
                     # IMACS 2x2
-                    xmin, xmax = 65, 2110
-                    ymin, ymax = 150, 400
+                    #xmin, xmax = 65, 2110
+                    #ymin, ymax = 150, 400
+                    # Blue Channel
+                    xmin, xmax = 5, 2700
+                    ymin, ymax = 100, 250
                     # LDDS3
                     #xmin, xmax = 650, 4095
                     #ymin, ymax = 320, 620
@@ -154,6 +157,7 @@ def prepare_data(file_directory = 'raw_data/*.fits', crop = False, rotate = Fals
                     fits_file.writeto(crop_name, overwrite = True)
                     fits.setval(crop_name,  'BIASSEC',  value='[%s:%s,%s:%s]'%(xmin - xmin + 1, xmax - xmin, ymin - ymin + 1, ymax - ymin))
                     fits.setval(crop_name,   datasec_key ,  value='[%s:%s,%s:%s]'%(xmin - xmin + 1, xmax - xmin, ymin - ymin + 1, ymax - ymin))
+                    fits.setval(crop_name,  'CCDSEC'    ,  value='[%s:%s,%s:%s]'%(xmin - xmin + 1, xmax - xmin, ymin - ymin + 1, ymax - ymin))
                     fits.setval(crop_name,  'DISPAXIS', value='1')
                     print('Cropped ' + crop_name)
 
@@ -363,3 +367,7 @@ def extract_fits_info(file_directory, variable_names, data_index = 0, header_ind
 #### LDSS ####
 #extract_fits_info('raw_data/*.fits', ['OBJECT', 'EXPTYPE', 'EXPTIME', 'RA', 'DEC', 'DATE-OBS', 'TIME-OBS', 'FILTER', 'GRISM'])
 #prepare_data(variables = [''], rotate = True, crop = True, break_character = ' ', disperser = 'GRISM', filter_name = 'Open', rotations = 1)
+
+#### Blue Channel ####
+#extract_fits_info('raw_data/*.fits', ['IMAGETYP', 'OBJECT', 'EXPTIME', 'RA', 'DEC', 'DATE-OBS', 'UT', 'AIRMASS', 'APERTURE', 'DISPERSE', 'CENWAVE'])
+#prepare_data(variables = [''], rotate = False, crop = True, break_character = ' ', disperser = 'DISPERSE', filter_name = '')
