@@ -9,7 +9,7 @@ import subprocess
 def check_existence(file_name, function, verbose = True):
     '''
     Check if some files with file_name already exist.
-    If they exist return True, if they don't return False. 
+    If they exist return True, if they don't return False.
     Print the name of the function too.
 
     Parameters
@@ -38,7 +38,7 @@ def check_existence(file_name, function, verbose = True):
 
 def create_standard_sens(directory, objecto, iraf_name, iraf_directory = 'iidscal', suffix = ''):
     '''
-    Calculate the flux calibration for the standard star and save. The list of standards 
+    Calculate the flux calibration for the standard star and save. The list of standards
     can be found in: http://stsdas.stsci.edu/cgi-bin/gethelp.cgi?onedstds
 
     Parameters
@@ -67,7 +67,7 @@ def create_standard_sens(directory, objecto, iraf_name, iraf_directory = 'iidsca
     The calibratied sens file
     The flux corrected images of the target.
     '''
-    
+
     # Use the first image of the standard to calculate the calibration
     standard_file = glob.glob("%s/%s*BiasFlatSkyOutWave.fits"%(directory, objecto))[0]
 
@@ -132,7 +132,7 @@ def iraf_standard(directory, objecto, sensfile):
                i.e. Objectname/Science
     objecto: Name of the object in the directory to flux calibrate
     sensfile: Full name of the sensfile to calibrate the data
-    
+
     Output
     -------------
     Flux calibrated data
@@ -174,5 +174,5 @@ def example():
 
 #create_standard_sens('Feige110' , 'spec' , 'feige110', iraf_directory = 'iidscal')
 
-#iraf_standard('AT2019itq', 'spec', 'sens_feige110.fits') 
+#iraf_standard('AT2019itq', 'spec', 'sens_feige110.fits')
 

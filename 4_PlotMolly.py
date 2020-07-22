@@ -14,7 +14,7 @@ import os
 def check_existence(file_name, function, verbose = True):
     '''
     Check if some files with file_name already exist.
-    If they exist return True, if they don't return False. 
+    If they exist return True, if they don't return False.
     Print the name of the function too.
 
     Parameters
@@ -43,8 +43,8 @@ def check_existence(file_name, function, verbose = True):
 
 def create_individual(directory, objecto, flux_corrected = True, suffix = ''):
     '''
-    Take all the reduced .fits files in the directory and 
-    break them up into their individual .fits files and 
+    Take all the reduced .fits files in the directory and
+    break them up into their individual .fits files and
     convert them to .txt files
 
     Parameters
@@ -107,7 +107,7 @@ def create_individual(directory, objecto, flux_corrected = True, suffix = ''):
 def generate_output(directory, objecto, flux_corrected = True, suffix = ''):
     '''
     Generate a three column ASCII file with wavelength, flux, and sigma for
-    every specified file. Also generate the same output with the optimally 
+    every specified file. Also generate the same output with the optimally
     extracted and raw spectra.
 
     Parameters
@@ -117,7 +117,7 @@ def generate_output(directory, objecto, flux_corrected = True, suffix = ''):
     flux_corrected: Plot the files that are flux corrected?
     suffix: Optional subset of files to plot, i.e. different standards.
             If not specified, all the files will be plotted.
-    
+
     Output
     -------------
     Three column files with (flux, wavelength, sigma)
@@ -151,7 +151,7 @@ def generate_output(directory, objecto, flux_corrected = True, suffix = ''):
 
 def plot_object(directory, objecto, object_name, suffix = '', use_optimal = True):
     '''
-    Plot all the spectra by reading in the three column files. 
+    Plot all the spectra by reading in the three column files.
 
     Parameters
     -------------
@@ -159,7 +159,7 @@ def plot_object(directory, objecto, object_name, suffix = '', use_optimal = True
     objecto: Name of the files to process
     suffix: Optional subset of files to plot, i.e. different standards.
             If not specified, all the files will be plotted.
-    
+
     Output
     -------------
     Plot of spectra
@@ -258,7 +258,7 @@ def molly_parameter(directory, objecto, flux_corrected = True, suffix = ''):
     flux_corrected: Plot the files that are flux corrected?
     suffix: Optional subset of files to plot, i.e. different standards.
             If not specified, all the files will be plotted.
-    
+
     Output
     -------------
     headerfile and listfile of molly files

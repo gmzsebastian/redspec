@@ -12,7 +12,7 @@ import subprocess
 def check_existence(file_name, function, verbose = True):
     '''
     Check if some files with file_name already exist.
-    If they exist return True, if they don't return False. 
+    If they exist return True, if they don't return False.
     Print the name of the function too.
 
     Parameters
@@ -74,8 +74,6 @@ def wavelength_solution(directory, objecto, cenwave, pix_scale, max_wave = 99999
     max_delta: Maximum separation in Angstroms between guess and result of center wavelength
     fit_range: Fit plus/minus these many Angstroms around the central wavelength
     max_width: Maximum width in Angstroms of the resulting fit of a line
-
-    
 
     Output
     -------------
@@ -233,7 +231,7 @@ def wavelength_solution(directory, objecto, cenwave, pix_scale, max_wave = 99999
         Line1 = "begin identify Lamp.ms - Ap 1" + "\n"
         Line2 = "coefficients 7" + "\n"
         Line3 = "2.0" + "\n"   # 2 = Legendre Polynomial
-        Line4 = "3.0" + "\n"   # 3 = Order of the fit 
+        Line4 = "3.0" + "\n"   # 3 = Order of the fit
         Line5 = str(Xmin) + "\n"
         Line6 = str(Xmax) + "\n"
         Line7 = str(Parameters_Good[0]) + "\n"
@@ -293,7 +291,7 @@ def wavelength_solution(directory, objecto, cenwave, pix_scale, max_wave = 99999
         iraf.hedit(images = str(name), fields = 'REFSPEC1', value = str(filename), add = 'yes', update = 'yes')
 
         # Do wavelength correction for each image
-        iraf.noao.dispcor(input = name, 
+        iraf.noao.dispcor(input = name,
                           output = name[:-5] + "Wave.fits",
                           linearize = 'no',
                           database = 'database',
@@ -455,7 +453,7 @@ def example():
 
 # IMACS Vph-all
 #best_cenwave, best_pix_scale = test_solution('AT2019itq', 6760.598193256596, 1.2924859110989577, bright_lines = [5875.6201,6143.0620,6965.4302,7065.1899,7383.9790,7635.1060,8115.311], arc_name = 'HeArNe')
-#wavelength_solution('AT2019itq', 'spec', best_cenwave , best_pix_scale, arc_name = 'HeNeAr', min_wave = 5500, max_wave = 7800) 
+#wavelength_solution('AT2019itq', 'spec', best_cenwave , best_pix_scale, arc_name = 'HeNeAr', min_wave = 5500, max_wave = 7800)
 
 # Binospec x270
 #best_cenwave, best_pix_scale = test_solution('AT2019mzd', 6498.935234323291, 1.3153992225382212, bright_lines = [4471.4790, 5015.6782, 5875.6201, 6678.1489, 7503.8682, 8424.6475], arc_name = 'HeNeAr')
@@ -466,19 +464,12 @@ def example():
 
 # WHT
 #best_cenwave, best_pix_scale = test_solution('SP2148+286_Redarm', 7880.226401767293, 1.8169057208729056, bright_lines = [5852.49,5944.83,5975.53,6074.34,6143.06,6217.28,6266.50,6334.43,6382.99,6402.25,6506.53,6532.88,6598.95,6677.282,6678.20,6752.834,6766.612,6871.289,6937.664,6965.431,7030.251,7067.218,7272.936,7383.981,7514.652,7503.869,7635.106,7724.63,7948.176,8006.157,8014.786,8115.311,8103.693,8264.5225,8424.6475,8408.210,8521.4422,9122.9674,9657.786,9784.503 ], arc_name = 'arc')
-#wavelength_solution('SP2148+286_Redarm', 'SP2148+286', best_cenwave , best_pix_scale, arc_name = 'arc', lamp_file = 'CuArNe_red.dat') 
+#wavelength_solution('SP2148+286_Redarm', 'SP2148+286', best_cenwave , best_pix_scale, arc_name = 'arc', lamp_file = 'CuArNe_red.dat')
 #best_cenwave, best_pix_scale = test_solution('SP2148+286_Bluearm', 4782.2426, 1.6283, bright_lines = [4052.92,4072.00,4103.91,4131.72,4158.59,4181.88,4199.89,4237.22,4259.36,4277.53,4300.10,4348.06,4370.75,4426.00,4481.81,4510.73,4545.05,4579.35,4609.57,4657.90,4726.87,4764.86,4806.02,4847.81,4879.86,4965.08,5017.16,5062.04,5105.54,5218.20,5292.52,5421.35,5495.87,5606.73,5852.49,5944.83,5975.53,6074.34,6143.06,6217.28,6266.50,6334.43,6382.99,6402.25,6506.53,6532.88,6598.95,6677.282,6678.20,6752.834,6766.612,6871.289,6937.664,6965.431,7030.251,7067.218,7272.936,7383.981,7514.652], arc_name = 'arc')
-#wavelength_solution('SP2148+286_Bluearm', 'SP2148+286', best_cenwave , best_pix_scale, arc_name = 'arc', lamp_file = 'CuArNe_blue.dat', min_wave = 4000) 
+#wavelength_solution('SP2148+286_Bluearm', 'SP2148+286', best_cenwave , best_pix_scale, arc_name = 'arc', lamp_file = 'CuArNe_blue.dat', min_wave = 4000)
 
 # LDSS3
 #best_cenwave, best_pix_scale = test_solution('AT2019itq', 6943.152292822476, 2.0448779485781823, bright_lines = [5875.6201,6143.0620,6965.4302,7065.1899,7383.9790,7635.1060,8115.311], arc_name = 'HeNeAr')
-#wavelength_solution('AT2019itq', 'spec', best_cenwave , best_pix_scale, arc_name = 'HeNeAr', min_wave = 5500) 
-#wavelength_solution('ltt7987'  , 'spec', best_cenwave , best_pix_scale, arc_name = 'HeNeAr', min_wave = 5500) 
-
-
-
-
-
-
-
+#wavelength_solution('AT2019itq', 'spec', best_cenwave , best_pix_scale, arc_name = 'HeNeAr', min_wave = 5500)
+#wavelength_solution('ltt7987'  , 'spec', best_cenwave , best_pix_scale, arc_name = 'HeNeAr', min_wave = 5500)
 

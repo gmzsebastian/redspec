@@ -21,7 +21,7 @@ import numpy as np
 def check_existence(file_name, function, verbose = True):
     '''
     Check if some files with file_name already exist.
-    If they exist return True, if they don't return False.
+    If they exist return True, if they don't return False. 
     Print the name of the function too.
 
     Parameters
@@ -162,7 +162,7 @@ def iraf_zerocombine(directory, extension = '', datasec_key = 'DATASEC'):
         os.system("sed 's/.fits/.fits[%s]/g' %s/biaslist > %s/biaslist%s"%(extension, directory, directory, extension))
         bias_list = 'biaslist' + str(extension)
 
-    zerocombine(input   = '@%s/%s'%(directory, bias_list), # List of zero images to combine, start with @ for a list
+    zerocombine(input   = '@%s/%s'%(directory, bias_list), # List of zero images to combine, start with @ for a list      
                 output  = '%s/Bias.fits'%directory,  # Output bias level name
                 combine = 'median',                  # Type of combine operation (average or median)
                 reject  = 'avsigclip',               # Type of rejection algorithm
@@ -190,7 +190,7 @@ def iraf_zerocombine(directory, extension = '', datasec_key = 'DATASEC'):
                 rdnoise = 'rdnoise',                 # CCD redout noise (electrons)
                 gain    = 'gain',                    # CCD gain (electrons / DN)
                 snoise  = '0.0',                     # Sensitiviy noise
-                pclip   = '-0.5',                    # Percentile clipping algorithm parameter.
+                pclip   = '-0.5',                    # Percentile clipping algorithm parameter. 
                                                      # If positive: Specifies number of pixels above or below the median to use for computing the clipping sigma.
                                                      # If negative: Specifies the fraction of pixels above or below the median to use.
                                                      # The default of -0.5 selects approximately the quartile point.
@@ -222,7 +222,7 @@ def iraf_ccdproc(directory, file_type, bias_file, flat_file = '', extension = ''
               i.e. Objectname/Flats
     file_type: Type of file being corrected. Either 'science' or 'lamp'
                if a flat normalization will happen. Or 'flat' if there
-               won't be a flat correction.
+               won't be a flat correction. 
     fixpix   : Apply a mask using the file with name fixfile
 
     Output
@@ -306,8 +306,8 @@ def iraf_ccdproc(directory, file_type, bias_file, flat_file = '', extension = ''
 
 def iraf_flatcombine(directory, response_sample, fit_order):
     '''
-    Merge all the flat files into one Flat.fits and then calculate the
-    response function for that file a generate a Flat_norm.fits file.
+    Merge all the flat files into one Flat.fits and then calculate the 
+    response function for that file a generate a Flat_norm.fits file. 
 
     Parameters
     -------------
@@ -357,7 +357,7 @@ def iraf_flatcombine(directory, response_sample, fit_order):
                 rdnoise = 'rdnoise',                      # CCD redout noise (electrons)
                 gain    = 'gain',                         # CCD gain (electrons / DN)
                 snoise  = '0.0',                          # Sensitiviy noise
-                pclip   = '-0.5',                         # Percentile clipping algorithm parameter.
+                pclip   = '-0.5',                         # Percentile clipping algorithm parameter. 
                                                           # If positive: Specifies number of pixels above or below the median to use for computing the clipping sigma.
                                                           # If negative: Specifies the fraction of pixels above or below the median to use.
                                                           # The default of -0.5 selects approximately the quartile point.
@@ -381,7 +381,7 @@ def iraf_flatcombine(directory, response_sample, fit_order):
              low_reject    = '0.0',                           # rejection limits below the fit in units of sigma
              high_reject   = '0.0',                           # rejection limits above the fit in units of sigma.
              niterate      = '1',                             # Number of rejection iterations.
-             grow          = '0.0',                           # Reject additional points within this distance of
+             grow          = '0.0',                           # Reject additional points within this distance of 
                                                               # points exceeding the rejection threshold
              graphics      = 'stdgraph',                      # Graphics for IRAF to use
              cursor        = '',                              # Cursor?
@@ -420,7 +420,7 @@ def check_0(filelist):
             continue_function = False
 
         if continue_function:
-            # Check if there is a row of 0's somewhere that can
+            # Check if there is a row of 0's somewhere that can 
             # be easily replaced
             zeros = np.where(data == 0.0)
 
@@ -479,7 +479,7 @@ def check_0(filelist):
 
 def iraf_background(directory, objecto, fit_sample, fit_order = 20):
     '''
-    Fit and substract a line of commond background. You will
+    Fit and substract a line of commond background. You will 
     need to manually type the columns to sample. (i.e. 200 2000)
 
     Parameters
@@ -533,7 +533,7 @@ def iraf_apall(directory, objecto, file_type, trace_order = 3, gain_name = 'GAIN
 
     Output
     -------------
-    List of 1D spectra that have been cleaned for cosmic rays and
+    List of 1D spectra that have been cleaned for cosmic rays and 
     undergone optimal extraction, the files have 3 arrays:
     - Clean Spectra
     - Raw Spectra
@@ -578,11 +578,11 @@ def iraf_apall(directory, objecto, file_type, trace_order = 3, gain_name = 'GAIN
           find          = interactive_in,  # Find apertures?
           recenter      = interactive_in,  # Recenter apertures?
           resize        = interactive_in,  # Resize apertures?
-          edit          = interactive_in,  # Edit apertures?
-          trace         = interactive_in,  # Trace apertures?
+          edit          = interactive_in,  # Edit apertures? 
+          trace         = interactive_in,  # Trace apertures? 
           fittrace      = interactive_in,  # Fit the traced points interactively?
-          extract       = 'yes',           # Extract spectra?
-          extras        = 'yes',           # Extract sky, sigma, etc?
+          extract       = 'yes',           # Extract spectra? 
+          extras        = 'yes',           # Extract sky, sigma, etc? 
           review        = 'yes',           # Review extractions?
           line          = 'INDEF',         # Dispersion line, INDEF selects the middle line
           nsum          = '500',           # Number of dispersion lines to sum or median
@@ -592,7 +592,7 @@ def iraf_apall(directory, objecto, file_type, trace_order = 3, gain_name = 'GAIN
           apidtable     = '',              # Aperture ID table
           # Background Parameters
           b_function    = 'legendre',      # Background function
-          b_order       = '1',             # Background function order
+          b_order       = '1',             # Background function order 
           b_sample      = '-50:-25,25:50', # Background sample regions
           b_naverage    = '-3',            # Background average or median
           b_niterate    = '5',             # Background rejection iterations
@@ -674,7 +674,7 @@ def individual_flats(directory, objecto, bias_file = 'bias/Bias.fits', response_
 def reduce_data(directory, objecto, do_individual_flats = True, bias_file = 'bias/Bias.fits', flat_file = '', arc_name = 'arc', flat_name = 'flat', extension = '', gain_name = 'GAIN', noise_name = 'enoise', fixpix = False, fixfile = ''):
     '''
     Big function that encompases all of the other data reduction functions.
-    Must be run in sudo, maybe it needs to run in Python2. If the file
+    Must be run in sudo, maybe it needs to run in Python2. If the file 
     structure is as follows:
     Science: object_name/Science
     Flats:   object_name/Flats
@@ -686,7 +686,7 @@ def reduce_data(directory, objecto, do_individual_flats = True, bias_file = 'bia
     object_name: Name of the folder where the targets are.
 
     '''
-
+    
     # Create lists of all files
     create_lists_science(directory, objecto, extension)
     create_lists_lamp(directory, arc_name, extension)
@@ -712,7 +712,7 @@ def reduce_data(directory, objecto, do_individual_flats = True, bias_file = 'bia
     iraf_background(directory, objecto, fit_sample = '*', fit_order = 5)
 
     # Extract the Source spectra
-    iraf_apall(directory, objecto, 'science', trace_order = 3, gain_name = gain_name, noise_name = noise_name)
+    iraf_apall(directory, objecto, 'science', trace_order = 3, gain_name = gain_name, noise_name = noise_name) 
 
     # Extract the lamp spectra
     iraf_apall(directory, arc_name, 'lamp', trace_order = 3, gain_name = gain_name, noise_name = noise_name)
@@ -744,7 +744,11 @@ def example():
 
 # Binospec
 #iraf_zerocombine('bias', extension = 1)
-#reduce_data('Feige_110', 'spectra', arc_name = 'HeNeAr', flat_name = 'flat', extension = 1)
+#reduce_data('AT2018qiz'   , 'spectra', arc_name = 'HeNeAr', flat_name = 'flat', extension = 1) 
+#reduce_data('AT2019oue'  , 'spectra', arc_name = 'HeNeAr', flat_name = 'flat', extension = 1) 
+#reduce_data('ZTF18aacdvjp'  , 'spectra', arc_name = 'HeNeAr', flat_name = 'flat', extension = 1) 
+reduce_data('cosmic', 'cosmic', arc_name = 'HeNeAr', flat_name = 'flat', extension = 1, fixpix = True, fixfile = 'mask_new.fits') 
+
 
 # FAST
 #individual_flats('FLAT', 'FLAT')
@@ -759,5 +763,5 @@ def example():
 
 # LDSS3
 #iraf_zerocombine('bias', extension = 0)
-#reduce_data('AT2019itq', 'spec', arc_name = 'HeNeAr', flat_name = 'flat', gain_name = 'EGAIN', noise_name = 'ENOISE')
-#reduce_data('ltt7987'  , 'spec', arc_name = 'HeNeAr', flat_name = 'flat', gain_name = 'EGAIN', noise_name = 'ENOISE')
+#reduce_data('AT2019itq', 'spec', arc_name = 'HeNeAr', flat_name = 'flat', gain_name = 'EGAIN', noise_name = 'ENOISE') 
+#reduce_data('ltt7987'  , 'spec', arc_name = 'HeNeAr', flat_name = 'flat', gain_name = 'EGAIN', noise_name = 'ENOISE') 

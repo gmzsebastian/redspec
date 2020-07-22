@@ -4,23 +4,24 @@ import glob
 from astropy.table import Table
 import os
 
-def prepare_data(file_directory = 'raw_data/*.fits', crop = False, rotate = False, flip = False, variables = ['DISPERSR', 'FILTER'], break_character = '-', filter_name = 'Spectroscopic2', disperser = 'DISPERSR', data_index = 0, datasec_key = 'DATASEC', rotations = 3):
+def prepare_data(file_directory = 'raw_data/*.fits', instrument = '', crop = False, rotate = False, flip = False, variables = ['DISPERSR', 'FILTER'], break_character = '-', filter_name = 'Spectroscopic2', disperser = 'DISPERSR', data_index = 0, datasec_key = 'DATASEC', rotations = 3):
     '''
     Copy the raw science image into directories and rename them to something useful.
     Also crop, rotate, or flip them if specified (not yet implemented)
 
     Parameters
     ---------------------
-    file_directory: Directory where to search for files in glob format, i.e. 'data/*.fits'
-    crop          : Crop the images?
-    rotate        : Rotate the images?
-    flip          : Flip the images?
-    filter_name   : IMACS = Spectroscopic2
-                    Something = Bessell_R2
-    disperser     : Name of disperser variable
-    data_index    : Where is the data?
-    rotations     : 3 means top will be left
-    
+    file_directory : Directory where to search for files in glob format, i.e. 'data/*.fits'
+    instrument     : Instrument being used, right now it only affects the crop factor.
+    crop           : Crop the images?
+    rotate         : Rotate the images?
+    flip           : Flip the images?
+    filter_name    : IMACS = Spectroscopic2
+                     Something = Bessell_R2
+    disperser      : Name of disperser variable
+    data_index     : Where is the data?
+    rotations      : 3 means top will be left
+
     Returns
     ---------------------
     Nothing, saves the .fits files to their correct directories.
@@ -138,18 +139,22 @@ def prepare_data(file_directory = 'raw_data/*.fits', crop = False, rotate = Fals
                     else:
                         crop_name = '%s/%s_%s.fits'%(directory_name, type_name, filename)
 
-                    # IMACS 1x1
-                    #xmin, xmax = 60, 4105
-                    #ymin, ymax = 300, 800
-                    # IMACS 2x2
-                    #xmin, xmax = 65, 2110
-                    #ymin, ymax = 150, 400
-                    # Blue Channel
-                    xmin, xmax = 5, 2700
-                    ymin, ymax = 100, 250
-                    # LDDS3
-                    #xmin, xmax = 650, 4095
-                    #ymin, ymax = 320, 620
+                    # Crop the spectrum image
+                    if instrument == '':
+                        xmin, xmax = 0, fits_file[data_index].data.shape[0]
+                        ymin, ymax = 0, fits_file[data_index].data.shape[1]
+                    elif instrument == 'IMACS1':
+                        xmin, xmax = 60, 4105
+                        ymin, ymax = 300, 800
+                    elif instrument == 'IMACS2':
+                        xmin, xmax = 65, 2110
+                        ymin, ymax = 150, 400
+                    elif instrument == 'BlueChannel':
+                        xmin, xmax = 5, 2700
+                        ymin, ymax = 100, 250
+                    elif instrument == 'LDDS3':
+                        xmin, xmax = 650, 4095
+                        ymin, ymax = 320, 620
 
                     # Crop the data
                     fits_file = fits.open(crop_name, ignore_missing_end=True)
@@ -278,7 +283,7 @@ def extract_fits_info(file_directory, variable_names, data_index = 0, header_ind
     variable_names: Names of the header items you wish to extract, i.e. ['OBJECT', 'EXPTIME', 'RA']
     file_directory: Directory where to search for files in glob format, i.e. 'data/*.fits'
     data_index    : In what index of a multi-dimensional fits file is the data stored, i.e. 0
-    return_counts : Include a column with the value of the hottest pixel in the image? 
+    return_counts : Include a column with the value of the hottest pixel in the image?
 
     Returns
     ---------------------
@@ -313,7 +318,7 @@ def extract_fits_info(file_directory, variable_names, data_index = 0, header_ind
         # Open File
         print(Files[i])
         File = fits.open(Files[i], ignore_missing_end=True)
-        
+
         # Get File name
         filename = Files[i][Files[i].find('/')+1:Files[i].find('.fits')]
 
