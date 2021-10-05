@@ -742,28 +742,26 @@ def example():
     reduce_data('AT2018lfe', 'AT2018lfe' , do_individual_flats = False, flat_file = 'flats_1.0/Flat_norm.fits' )
     reduce_data('AT2019go' , 'AT2019go'  , do_individual_flats = False, flat_file = 'flats_1.25/Flat_norm.fits')
 
-# Create the master Bias.fits file
-#iraf_zerocombine('bias', extension = 0)
-
 # IMACS
-#reduce_data('AT2019rhb', 'AT2019rhb', arc_name='HeNeAr' , flat_name = 'Qh', gain_name = 'EGAIN', noise_name = 'ENOISE')
+#iraf_zerocombine('bias', extension = 0) 
+#reduce_data('AT2020abc', 'AT2020abc', arc_name='HeNeAr' , flat_name = 'Qh', gain_name = 'EGAIN', noise_name = 'ENOISE')
 
 # Binospec
 #iraf_zerocombine('bias', extension = 1)
-#reduce_data('Feige_110', 'spectra', arc_name = 'HeNeAr', flat_name = 'flat', extension = 1, fixpix = True, fixfile = 'Binospec_mask.fits')
+#reduce_data('AT2020abc', 'spectra', arc_name = 'HeNeAr', flat_name = 'flat', extension = 1, fixpix = True, fixfile = 'Binospec_mask.fits')
 
 # FAST
+#iraf_zerocombine('bias', extension = 1)
 #individual_flats('FLAT', 'FLAT')
-#reduce_data('BDp284211', 'BDp284211', arc_name='COMP', flat_name = 'Qh', do_individual_flats = False, flat_file = 'FLAT/Flat_norm.fits', gain_name = 'GAIN', noise_name = 'RDNOISE')
+#reduce_data('AT2020abc', 'AT2020abc', arc_name='COMP', flat_name = 'Qh', do_individual_flats = False, flat_file = 'FLAT/Flat_norm.fits', gain_name = 'GAIN', noise_name = 'RDNOISE')
 
 # WHT
 #iraf_zerocombine('bias_Redarm', extension = 1, datasec_key = 'RTDATSEC')
 #iraf_zerocombine('bias_Bluearm', extension = 1, datasec_key = 'RTDATSEC')
 #individual_flats('Flat_Redarm' , 'field', extension = 1, bias_file = 'bias_Redarm/Bias.fits')
 #individual_flats('Flat_Bluearm', 'field', extension = 1, bias_file = 'bias_Redarm/Bias.fits')
-#reduce_data('SP2148+286_Redarm', 'SP2148+286', arc_name='arc', flat_name = 'Qh', do_individual_flats = False, flat_file = 'Flat_Redarm/Flat_norm.fits', gain_name = 'GAIN', noise_name = 'READNOIS', bias_file = 'bias_Redarm/Bias.fits', extension = 1)
+#reduce_data('AT2020abc_Redarm', 'AT2020abc', arc_name='arc', flat_name = 'Qh', do_individual_flats = False, flat_file = 'Flat_Redarm/Flat_norm.fits', gain_name = 'GAIN', noise_name = 'READNOIS', bias_file = 'bias_Redarm/Bias.fits', extension = 1)
 
 # LDSS3
 #iraf_zerocombine('bias', extension = 0)
-#reduce_data('AT2019itq', 'spec', arc_name = 'HeNeAr', flat_name = 'flat', gain_name = 'EGAIN', noise_name = 'ENOISE')
-#reduce_data('ltt7987'  , 'spec', arc_name = 'HeNeAr', flat_name = 'flat', gain_name = 'EGAIN', noise_name = 'ENOISE')
+#reduce_data('AT2020abc', 'spec', arc_name = 'HeNeAr', flat_name = 'flat', gain_name = 'EGAIN', noise_name = 'ENOISE')

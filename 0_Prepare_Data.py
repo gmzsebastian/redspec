@@ -353,9 +353,6 @@ def extract_fits_info(file_directory, variable_names, data_index = 0, header_ind
     # Save output table
     file_list.write("Nightlog_%s.txt"%Date0, format='ascii.fixed_width', delimiter=None)
 
-# Something?
-#extract_fits_info('raw_data/*.fits', ['OBJECT', 'EXPTYPE', 'EXPTIME', 'RA', 'DEC', 'DATE-OBS', 'AIRMASS', 'DISPERSR'])
-
 ##### IMACS #####
 #extract_fits_info('raw_data/*.fits', ['OBJECT', 'EXPTYPE', 'EXPTIME', 'RA', 'DEC', 'DATE-OBS', 'TIME-OBS', 'FILTER', 'DISPERSR', 'BINNING', 'AIRMASS'])
 #prepare_data(variables = [''], rotate = True, crop = True, break_character = ' ', instrument = 'IMACS1')
@@ -365,6 +362,7 @@ def extract_fits_info(file_directory, variable_names, data_index = 0, header_ind
 #prepare_binospec()
 
 #### Binospec 600 ####
+#extract_fits_info('raw_data/*.fits', ['OBJECT', 'IMAGETYP', 'SCRN', 'EXPTIME', 'RA', 'DEC', 'DATE-OBS', 'FILTER', 'MASK', 'DISPERS1', 'DISPERS2', 'HENEAR', 'MJD', 'AIRMASS', 'EXPMODE', 'PI'], header_index = 1, data_index = 1, return_counts = False)
 #prepare_binospec(disperser_name = 'x600')
 
 #### FAST ####

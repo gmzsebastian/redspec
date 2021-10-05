@@ -396,4 +396,4 @@ def example():
     molly_parameter('AT2018lfe', 'AT2018lfe')
     # WARNING, this function has not been tested in whiiiiile, might break a lot
 
-#all_in_one('PS17brq', 'spectra', object_name = 'PS17brq')
+#all_in_one('AT2020abc', 'spectra', object_name = 'AT2020abc')

@@ -174,5 +174,5 @@ def example():
 
 #create_standard_sens('Feige110' , 'spec' , 'feige110', iraf_directory = 'iidscal')
 
-#iraf_standard('AT2019itq', 'spec', 'sens_feige110.fits')
+#iraf_standard('AT2020abc', 'spec', 'sens_feige110.fits')
 
