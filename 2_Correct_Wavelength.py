@@ -452,15 +452,19 @@ def example():
     wavelength_solution('AT2018lfe', 'AT2018lfe', best_cenwave , best_pix_scale , arc_name = 'HeNeAr')
 
 # IMACS Vph-all
-#best_cenwave, best_pix_scale = test_solution('AT2019itq', 6760.598193256596, 1.2924859110989577, bright_lines = [5875.6201,6143.0620,6965.4302,7065.1899,7383.9790,7635.1060,8115.311], arc_name = 'HeArNe')
+#best_cenwave, best_pix_scale = test_solution('AT2019itq', 6760.598193256596, 1.2924859110989577, bright_lines = [5875.6201,6143.0620,6965.4302,7065.1899,7383.9790,7635.1060,8115.311], arc_name = 'HeNeAr')
 #wavelength_solution('AT2019itq', 'spec', best_cenwave , best_pix_scale, arc_name = 'HeNeAr', min_wave = 5500, max_wave = 7800)
 
 # Binospec x270
 #best_cenwave, best_pix_scale = test_solution('AT2019mzd', 6498.935234323291, 1.3153992225382212, bright_lines = [4471.4790, 5015.6782, 5875.6201, 6678.1489, 7503.8682, 8424.6475], arc_name = 'HeNeAr')
 #wavelength_solution('AT2019mzd', 'spec', best_cenwave , best_pix_scale, arc_name = 'HeNeAr', min_wave = 4000, max_wave = 8550)
 
+# Binospec x600
+#best_cenwave, best_pix_scale = test_solution('AT2020xgd_600', 5198.136225008471, 0.6039986445272788, bright_lines = [4471.4790, 5015.6782, 5875.6201], arc_name = 'HeNeAr')
+
 # FAST
-#best_cenwave, best_pix_scale = test_solution('BDp284211', 5423.685483021429, 1.4738304408766751, bright_lines = [3944.032, 3961.527, 6965.43, 7383.98], arc_name = 'COMP')
+#best_cenwave, best_pix_scale = test_solution('G191B2B', 5417.750255333858, 1.4738304408766751, bright_lines = [3944.032, 3961.527, 6965.43, 7383.98], arc_name = 'COMP')
+#wavelength_solution('G191B2B'  , 'G191B2B'  , best_cenwave , best_pix_scale, arc_name = 'COMP', min_wave = 4050, max_wave = 7800)
 
 # WHT
 #best_cenwave, best_pix_scale = test_solution('SP2148+286_Redarm', 7880.226401767293, 1.8169057208729056, bright_lines = [5852.49,5944.83,5975.53,6074.34,6143.06,6217.28,6266.50,6334.43,6382.99,6402.25,6506.53,6532.88,6598.95,6677.282,6678.20,6752.834,6766.612,6871.289,6937.664,6965.431,7030.251,7067.218,7272.936,7383.981,7514.652,7503.869,7635.106,7724.63,7948.176,8006.157,8014.786,8115.311,8103.693,8264.5225,8424.6475,8408.210,8521.4422,9122.9674,9657.786,9784.503 ], arc_name = 'arc')
@@ -473,3 +477,6 @@ def example():
 #wavelength_solution('AT2019itq', 'spec', best_cenwave , best_pix_scale, arc_name = 'HeNeAr', min_wave = 5500)
 #wavelength_solution('ltt7987'  , 'spec', best_cenwave , best_pix_scale, arc_name = 'HeNeAr', min_wave = 5500)
 
+# LDSS3 2x2
+#best_cenwave, best_pix_scale = test_solution('AT2019itq', 7031, 4.09, bright_lines = [5875.6201,6143.0620,6965.4302,7065.1899,7383.9790,7635.1060,8115.311], arc_name = 'HeNeAr')
+#wavelength_solution('AT2019itq', 'spec', best_cenwave , best_pix_scale, arc_name = 'HeNeAr', min_wave = 5500)

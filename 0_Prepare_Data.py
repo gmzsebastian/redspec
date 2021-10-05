@@ -155,6 +155,9 @@ def prepare_data(file_directory = 'raw_data/*.fits', instrument = '', crop = Fal
                     elif instrument == 'LDDS3':
                         xmin, xmax = 650, 4095
                         ymin, ymax = 320, 620
+                    elif instrument == 'LDDS3_2x2':
+                        xmin, xmax = 300, 2047
+                        ymin, ymax = 225, 380
 
                     # Crop the data
                     fits_file = fits.open(crop_name, ignore_missing_end=True)
@@ -355,11 +358,14 @@ def extract_fits_info(file_directory, variable_names, data_index = 0, header_ind
 
 ##### IMACS #####
 #extract_fits_info('raw_data/*.fits', ['OBJECT', 'EXPTYPE', 'EXPTIME', 'RA', 'DEC', 'DATE-OBS', 'TIME-OBS', 'FILTER', 'DISPERSR', 'BINNING', 'AIRMASS'])
-#prepare_data(variables = [''], rotate = True, crop = True, break_character = ' ')
+#prepare_data(variables = [''], rotate = True, crop = True, break_character = ' ', instrument = 'IMACS1')
 
 #### Binospec ####
 #extract_fits_info('raw_data/*.fits', ['OBJECT', 'IMAGETYP', 'SCRN', 'EXPTIME', 'RA', 'DEC', 'DATE-OBS', 'FILTER', 'MASK', 'DISPERS1', 'DISPERS2', 'HENEAR', 'MJD', 'AIRMASS', 'EXPMODE', 'PI'], header_index = 1, data_index = 1, return_counts = False)
 #prepare_binospec()
+
+#### Binospec 600 ####
+#prepare_binospec(disperser_name = 'x600')
 
 #### FAST ####
 #extract_fits_info('raw_data/*.fits', ['OBJECT', 'EXPTIME', 'RA', 'DEC', 'DATE', 'APERTURE', 'DISPERSE'])
@@ -370,9 +376,9 @@ def extract_fits_info(file_directory, variable_names, data_index = 0, header_ind
 #prepare_data(variables = ['ISIARM'], rotate = True, crop = True, break_character = ' ', disperser = 'ISIGRAT', filter_name = '', datasec_key = 'RTDATSEC', data_index = 1, rotations = 1)
 
 #### LDSS ####
-#extract_fits_info('raw_data/*.fits', ['OBJECT', 'EXPTYPE', 'EXPTIME', 'RA', 'DEC', 'DATE-OBS', 'TIME-OBS', 'FILTER', 'GRISM'])
-#prepare_data(variables = [''], rotate = True, crop = True, break_character = ' ', disperser = 'GRISM', filter_name = 'Open', rotations = 1)
+#extract_fits_info('raw_data/*c1.fits', ['OBJECT', 'EXPTYPE', 'EXPTIME', 'BINNING', RA', 'DEC', 'DATE-OBS', 'TIME-OBS', 'FILTER', 'GRISM'])
+#prepare_data('raw_data/*c1.fits', variables = [''], rotate = True, crop = True, break_character = ' ', disperser = 'GRISM', filter_name = 'Open', rotations = 1, instrument = 'LDDS3')
 
 #### Blue Channel ####
 #extract_fits_info('raw_data/*.fits', ['IMAGETYP', 'OBJECT', 'EXPTIME', 'RA', 'DEC', 'DATE-OBS', 'UT', 'AIRMASS', 'APERTURE', 'DISPERSE', 'CENWAVE'])
-#prepare_data(variables = [''], rotate = False, crop = True, break_character = ' ', disperser = 'DISPERSE', filter_name = '')
+#prepare_data(variables = [''], rotate = False, crop = True, break_character = ' ', disperser = 'DISPERSE', filter_name = '', instrument == 'BlueChannel')

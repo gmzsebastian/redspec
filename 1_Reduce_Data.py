@@ -200,9 +200,15 @@ def iraf_zerocombine(directory, extension = '', datasec_key = 'DATASEC'):
 
     input_bias = np.genfromtxt('%s/%s'%(directory, bias_list), dtype = 'str')[0]
     if extension != '':
-        datasec_in = fits.getval(input_bias[:-3], datasec_key,ext = extension)
+        datasec_in = fits.getval(input_bias[:-3], datasec_key, ext=extension, ignore_missing_end=True)
     else:
         datasec_in = fits.getval(input_bias, datasec_key,ext = extension)
+
+    # Delete PI key if it exists
+    try:
+        fits.delval('%s/Bias.fits'%directory, 'P.I.')
+    except:
+        pass
     fits.setval('%s/Bias.fits'%directory, datasec_key, value = datasec_in)
 
     print('Saved Bias.fits to %s/ \n'%directory)
@@ -744,7 +750,7 @@ def example():
 
 # Binospec
 #iraf_zerocombine('bias', extension = 1)
-#reduce_data('Feige_110', 'spectra', arc_name = 'HeNeAr', flat_name = 'flat', extension = 1)
+#reduce_data('Feige_110', 'spectra', arc_name = 'HeNeAr', flat_name = 'flat', extension = 1, fixpix = True, fixfile = 'Binospec_mask.fits')
 
 # FAST
 #individual_flats('FLAT', 'FLAT')
