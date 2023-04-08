@@ -202,7 +202,7 @@ def iraf_zerocombine(directory, extension = '', datasec_key = 'DATASEC'):
     if extension != '':
         datasec_in = fits.getval(input_bias[:-3], datasec_key, ext=extension, ignore_missing_end=True)
     else:
-        datasec_in = fits.getval(input_bias, datasec_key,ext = extension)
+        datasec_in = fits.getval(input_bias, datasec_key, ext = 0)
 
     # Delete PI key if it exists
     try:
@@ -248,7 +248,7 @@ def iraf_ccdproc(directory, file_type, bias_file, flat_file = '', extension = ''
         flatcor_in = 'no'
 
     # If correcting the lamp files, do flat correction
-    elif file_type in ['lamp', 'arc', 'HeNeAr', 'henear', 'arcs', 'Arc', 'HeArNe', 'COMP']:
+    elif file_type in ['lamp', 'arc', 'HeNeAr', 'henear', 'arcs', 'comp', 'Arc', 'HeArNe', 'COMP']:
         images_in  = '@%s/lamplist%s'%(directory, extension)
         output_in  = '@%s/lamplistbiasflat'%directory
         flat       = flat_file
@@ -551,7 +551,7 @@ def iraf_apall(directory, objecto, file_type, trace_order = 3, gain_name = 'GAIN
         return
 
     # If the files are lamp files, there was no sky subtraction done
-    if file_type in ['lamp', 'arc', 'HeNeAr', 'henear', 'arcs', 'Arc', 'HeArNe']:
+    if file_type in ['lamp', 'arc', 'HeNeAr', 'comp', 'henear', 'arcs', 'Arc', 'HeArNe']:
         input_in       = '@%s/lamplistbiasflat'%directory
         output_in      = '@%s/lamplistbiasflatout'%directory
         interactive_in = 'no'
@@ -694,18 +694,18 @@ def reduce_data(directory, objecto, do_individual_flats = True, bias_file = 'bia
     '''
 
     # Create lists of all files
-    create_lists_science(directory, objecto, extension)
-    create_lists_lamp(directory, arc_name, extension)
+    #create_lists_science(directory, objecto, extension)
+    #create_lists_lamp(directory, arc_name, extension)
 
     if do_individual_flats:
         # Create lists of Flats
-        create_lists_flats(directory, flat_name, extension)
+        #create_lists_flats(directory, flat_name, extension)
         # Bias correct the flats
-        iraf_ccdproc(directory, 'flat', bias_file = bias_file, extension = extension, fixpix = fixpix, fixfile = fixfile)
+        #iraf_ccdproc(directory, 'flat', bias_file = bias_file, extension = extension, fixpix = fixpix, fixfile = fixfile)
         # Create master Flat file
-        iraf_flatcombine(directory, response_sample = '*', fit_order = 60)
+        #iraf_flatcombine(directory, response_sample = '*', fit_order = 60)
         # Check that the master Flat file has no 0's
-        check_0(directory + '/Flat_norm.fits')
+        #check_0(directory + '/Flat_norm.fits')
         # Bias and Flat correct the science and lamps
         iraf_ccdproc(directory, objecto,  bias_file = bias_file, flat_file = directory + '/Flat_norm.fits', extension = extension, fixpix = fixpix, fixfile = fixfile)
         iraf_ccdproc(directory, arc_name, bias_file = bias_file, flat_file = directory + '/Flat_norm.fits', extension = extension, fixpix = fixpix, fixfile = fixfile)
@@ -765,3 +765,8 @@ def example():
 # LDSS3
 #iraf_zerocombine('bias', extension = 0)
 #reduce_data('AT2020abc', 'spec', arc_name = 'HeNeAr', flat_name = 'flat', gain_name = 'EGAIN', noise_name = 'ENOISE')
+
+# Goodman
+#iraf_zerocombine('bias')
+#reduce_data('AT2022acyo', 'AT2022acyo', arc_name = 'comp', flat_name = 'flat', noise_name = 'RDNOISE')
+

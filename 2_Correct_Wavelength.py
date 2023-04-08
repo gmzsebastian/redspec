@@ -481,3 +481,8 @@ def example():
 # LDSS3 2x2
 #best_cenwave, best_pix_scale = test_solution('AT2020abc', 7031, 4.09, bright_lines = [5875.6201,6143.0620,6965.4302,7065.1899,7383.9790,7635.1060,8115.311], arc_name = 'HeNeAr')
 #wavelength_solution('AT2020abc', 'spec', best_cenwave , best_pix_scale, arc_name = 'HeNeAr', min_wave = 5500)
+
+# Goodman
+#best_cenwave, best_pix_scale = test_solution('AT2022acyo', 6929.480875255485, 1.9787042418282716, bright_lines = [6096.1631, 6266.4951, 6382.9912, 6506.5278, 6678.1489, 7438.8979, 7723.7598, 8118.5488], arc_name = 'comp')
+#wavelength_solution('AT2022acyo', 'AT2022acyo', best_cenwave , best_pix_scale, arc_name = 'comp', min_wave = 5500, max_wave = 8500)
+

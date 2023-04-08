@@ -172,7 +172,6 @@ def example():
     # Correct the target with the standard
     iraf_standard('AT2018lfe', 'AT2018lfe', 'sens_l2415.fits')
 
-#create_standard_sens('Feige110' , 'spec' , 'feige110', iraf_directory = 'iidscal')
-
-#iraf_standard('AT2020abc', 'spec', 'sens_feige110.fits')
+#create_standard_sens('LTT3218' , 'LTT3218' , 'l3218', iraf_directory = 'ctionewcal')
+#iraf_standard('AT2022acyo', 'AT2022acyo', 'sens_l3218.fits')
 

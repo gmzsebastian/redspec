@@ -4,7 +4,7 @@ import glob
 from astropy.table import Table
 import os
 
-def prepare_data(file_directory = 'raw_data/*.fits', instrument = '', crop = False, rotate = False, flip = False, variables = ['DISPERSR', 'FILTER'], break_character = '-', filter_name = 'Spectroscopic2', disperser = 'DISPERSR', data_index = 0, datasec_key = 'DATASEC', rotations = 3):
+def prepare_data(file_directory = 'raw_data/*.fits', instrument = '', crop = False, rotate = False, flip = False, variables = ['DISPERSR', 'FILTER'], break_character = '-', filter_name = 'Spectroscopic2', disperser = 'DISPERSR', data_index = 0, datasec_key = 'DATASEC', rotations = 3, header_index = 0):
     '''
     Copy the raw science image into directories and rename them to something useful.
     Also crop, rotate, or flip them if specified (not yet implemented)
@@ -40,19 +40,19 @@ def prepare_data(file_directory = 'raw_data/*.fits', instrument = '', crop = Fal
         # Open File
         print(Files[i])
         File = fits.open(Files[i], ignore_missing_end=True)
-        file_kind = File[0].header[disperser]
+        file_kind = File[header_index].header[disperser]
         if filter_name != '':
-            filter_kind = File[0].header['FILTER']
+            filter_kind = File[header_index].header['FILTER']
         else:
             filter_kind = ''
-        full_name   = File[0].header['OBJECT']
+        full_name   = File[header_index].header['OBJECT']
 
         is_it_calibration = np.array([k in full_name for k in ['BIAS', 'bias', 'Bias', 'Flat', 'FLAT', 'flat', 'ZERO']])
 
         if ('Gri' in file_kind) or (filter_name in filter_kind) or is_it_calibration.any():
             # Get File name
             filename    = Files[i][Files[i].find('/')+1:Files[i].find('.fits')]
-            full_name   = File[0].header['OBJECT']
+            full_name   = File[header_index].header['OBJECT']
 
             # Break the name in two if there are two words
             name_break  = full_name.find(break_character)
@@ -65,17 +65,20 @@ def prepare_data(file_directory = 'raw_data/*.fits', instrument = '', crop = Fal
 
             # Get the type of file (arc, flat, object, etc.)
             try:
-                file_type = File[0].header['IMAGETYP']
+                try:
+                    file_type = File[header_index].header['IMAGETYP']
+                except:
+                    file_type = File[header_index].header['EXPTYPE']
             except:
-                file_type = File[0].header['EXPTYPE']
+                file_type = File[header_index].header['OBSTYPE']
 
             # If the object is a bias frame, copy that inot the bias folder
-            if file_type in ['zero', 'Bias', 'Zero', 'bias', 'ZERO']:
+            if file_type in ['zero', 'Bias', 'BIAS', 'Zero', 'bias', 'ZERO']:
                 print_name     = 'bias'
                 directory_name = 'bias'
                 if variables[0] != '':
                     for k in range(len(variables)):
-                        value            = File[0].header[variables[k]].replace(' ', '')
+                        value            = File[header_index].header[variables[k]].replace(' ', '')
                         print_name      += ' \t ' + value
                         directory_name  += '_' + value
 
@@ -84,13 +87,13 @@ def prepare_data(file_directory = 'raw_data/*.fits', instrument = '', crop = Fal
 
                 os.system('cp %s %s/%s_%s.fits'%(Files[i], directory_name, object_name, filename))
 
-            elif file_type in ['object', 'Object', 'COMP', 'ARC', 'OBJECT', 'arc', 'FLAT', 'Flat', 'flat', 'comp']:
+            elif file_type in ['object', 'Object', 'SPECTRUM', 'COMP', 'ARC', 'OBJECT', 'arc', 'LAMPFLAT', 'FLAT', 'Flat', 'flat', 'comp']:
                 print_name      = object_name
                 directory_name  = object_name
 
                 if variables[0] != '':
                     for k in range(len(variables)):
-                        value            = File[0].header[variables[k]].replace(' ', '')
+                        value            = File[header_index].header[variables[k]].replace(' ', '')
                         print_name      += ' \t ' + value
                         directory_name  += '_' + value
 
@@ -104,7 +107,7 @@ def prepare_data(file_directory = 'raw_data/*.fits', instrument = '', crop = Fal
                 # Copy the science file in the directory and rename it to something useful
                 os.system('cp %s %s/%s_%s.fits'%(Files[i], directory_name, type_name, filename))
 
-            if file_type in ['zero', 'Bias', 'Zero', 'bias', 'ZERO', 'object', 'Object', 'COMP', 'ARC', 'OBJECT', 'arc', 'FLAT', 'Flat', 'flat', 'comp']:
+            if file_type in ['zero', 'Bias', 'BIAS', 'Zero', 'bias', 'ZERO', 'object', 'Object', 'SPECTRUM', 'COMP', 'ARC', 'OBJECT', 'arc', 'FLAT', 'LAMPFLAT', 'Flat', 'flat', 'comp']:
                 # Once saved, rotate or flip if specified
                 if rotate:
                     # Rotate the Data by 90 degrees. Top will be left
@@ -126,15 +129,15 @@ def prepare_data(file_directory = 'raw_data/*.fits', instrument = '', crop = Fal
                     out_data = '[%s,%s]'%(two_data, one_data)
 
                     fits_file.writeto(file_name, overwrite = True)
-                    fits.setval(file_name,  'BIASSEC',  value=out_bias)
-                    fits.setval(file_name,   datasec_key,  value=out_data)
-                    fits.setval(file_name,  'DISPAXIS', value='1')
+                    fits.setval(file_name,  'BIASSEC',  value=out_bias, ext = header_index)
+                    fits.setval(file_name,   datasec_key,  value=out_data, ext = header_index)
+                    fits.setval(file_name,  'DISPAXIS', value='1', ext = header_index)
 
                     print('Rotated ' + file_name)
 
                 if crop:
                     # Rotate the Data by 270 degrees. Top will be left
-                    if file_type in ['zero', 'Bias', 'Zero', 'bias', 'ZERO']:
+                    if file_type in ['zero', 'Bias', 'BIAS', 'Zero', 'bias', 'ZERO']:
                         crop_name = '%s/%s_%s.fits'%(directory_name, type_name, filename)
                     else:
                         crop_name = '%s/%s_%s.fits'%(directory_name, type_name, filename)
@@ -158,15 +161,18 @@ def prepare_data(file_directory = 'raw_data/*.fits', instrument = '', crop = Fal
                     elif instrument == 'LDDS3_2x2':
                         xmin, xmax = 300, 2047
                         ymin, ymax = 225, 380
+                    elif instrument == 'Goodman':
+                        xmin, xmax = 65, 2067
+                        ymin, ymax = 100, 900
 
                     # Crop the data
                     fits_file = fits.open(crop_name, ignore_missing_end=True)
-                    fits_file[data_index].data = fits_file[data_index].data[ymin:ymax,xmin:xmax]
+                    fits_file[data_index].data = fits_file[data_index].data[ymin:ymax,:]
                     fits_file.writeto(crop_name, overwrite = True)
-                    fits.setval(crop_name,  'BIASSEC',  value='[%s:%s,%s:%s]'%(xmin - xmin + 1, xmax - xmin, ymin - ymin + 1, ymax - ymin))
-                    fits.setval(crop_name,   datasec_key ,  value='[%s:%s,%s:%s]'%(xmin - xmin + 1, xmax - xmin, ymin - ymin + 1, ymax - ymin))
-                    fits.setval(crop_name,  'CCDSEC'    ,  value='[%s:%s,%s:%s]'%(xmin - xmin + 1, xmax - xmin, ymin - ymin + 1, ymax - ymin))
-                    fits.setval(crop_name,  'DISPAXIS', value='1')
+                    fits.setval(crop_name,  'BIASSEC',  value='[%s:%s,%s:%s]'%(xmin - xmin + 1, xmax - xmin, ymin - ymin + 1, ymax - ymin), ext = header_index)
+                    fits.setval(crop_name,   datasec_key ,  value='[%s:%s,%s:%s]'%(xmin - xmin + 1, xmax - xmin, ymin - ymin + 1, ymax - ymin), ext = header_index)
+                    fits.setval(crop_name,  'CCDSEC'    ,  value='[%s:%s,%s:%s]'%(xmin - xmin + 1, xmax - xmin, ymin - ymin + 1, ymax - ymin), ext = header_index)
+                    fits.setval(crop_name,  'DISPAXIS', value='1', ext = header_index)
                     print('Cropped ' + crop_name)
 
 def prepare_binospec(file_directory = 'raw_data/*.fits', crop = True, flip = False, variables = [''], disperser_name = 'x270', header_extension = 1, data_extension = 2):
@@ -353,6 +359,17 @@ def extract_fits_info(file_directory, variable_names, data_index = 0, header_ind
     # Save output table
     file_list.write("Nightlog_%s.txt"%Date0, format='ascii.fixed_width', delimiter=None)
 
+def pre_prepare_data(file_directory = 'original/*.fits.fz'):
+    # Import file names
+    Files = sorted(glob.glob(file_directory))
+
+    for i, name in enumerate(Files):
+        print(i, name)
+        A = fits.open(name)
+        hdu = fits.PrimaryHDU(data = A[1].data, header = A[1].header)
+        hdul = fits.HDUList([hdu])
+        hdul.writeto('raw_data/' + name.split('/')[1])
+
 ##### IMACS #####
 #extract_fits_info('raw_data/*.fits', ['OBJECT', 'EXPTYPE', 'EXPTIME', 'RA', 'DEC', 'DATE-OBS', 'TIME-OBS', 'FILTER', 'DISPERSR', 'BINNING', 'AIRMASS'])
 #prepare_data(variables = [''], rotate = True, crop = True, break_character = ' ', instrument = 'IMACS1')
@@ -374,9 +391,18 @@ def extract_fits_info(file_directory, variable_names, data_index = 0, header_ind
 #prepare_data(variables = ['ISIARM'], rotate = True, crop = True, break_character = ' ', disperser = 'ISIGRAT', filter_name = '', datasec_key = 'RTDATSEC', data_index = 1, rotations = 1)
 
 #### LDSS ####
-#extract_fits_info('raw_data/*c1.fits', ['OBJECT', 'EXPTYPE', 'EXPTIME', 'BINNING', RA', 'DEC', 'DATE-OBS', 'TIME-OBS', 'FILTER', 'GRISM'])
+#extract_fits_info('raw_data/*c1.fits', ['OBJECT', 'EXPTYPE', 'EXPTIME', 'BINNING', 'RA', 'DEC', 'DATE-OBS', 'TIME-OBS', 'FILTER', 'GRISM'])
 #prepare_data('raw_data/*c1.fits', variables = [''], rotate = True, crop = True, break_character = ' ', disperser = 'GRISM', filter_name = 'Open', rotations = 1, instrument = 'LDDS3')
 
 #### Blue Channel ####
 #extract_fits_info('raw_data/*.fits', ['IMAGETYP', 'OBJECT', 'EXPTIME', 'RA', 'DEC', 'DATE-OBS', 'UT', 'AIRMASS', 'APERTURE', 'DISPERSE', 'CENWAVE'])
-#prepare_data(variables = [''], rotate = False, crop = True, break_character = ' ', disperser = 'DISPERSE', filter_name = '', instrument == 'BlueChannel')
+#prepare_data(variables = [''], rotate = False, crop = True, break_character = ' ', disperser = 'DISPERSE', filter_name = '', instrument = 'BlueChannel')
+
+#### SOAR Goodman ####
+#extract_fits_info('original/*.fits.fz', ['OBSTYPE', 'OBJECT', 'EXPTIME', 'RA', 'DEC', 'DATE-OBS', 'UT', 'AIRMASS', 'FILTER', 'FILTER2', 'GRATING', 'SLIT'], header_index = 1, data_index = 1)
+#pre_prepare_data('original/*.fits.fz')
+#prepare_data('raw_data/*.fits.fz', variables = [''], rotate = False, crop = True, break_character = ' ', disperser = 'GRATING', filter_name = '', instrument = 'Goodman', header_index = 0, data_index = 0)
+
+
+
+
