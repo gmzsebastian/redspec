@@ -694,18 +694,18 @@ def reduce_data(directory, objecto, do_individual_flats = True, bias_file = 'bia
     '''
 
     # Create lists of all files
-    #create_lists_science(directory, objecto, extension)
-    #create_lists_lamp(directory, arc_name, extension)
+    create_lists_science(directory, objecto, extension)
+    create_lists_lamp(directory, arc_name, extension)
 
     if do_individual_flats:
         # Create lists of Flats
-        #create_lists_flats(directory, flat_name, extension)
+        create_lists_flats(directory, flat_name, extension)
         # Bias correct the flats
-        #iraf_ccdproc(directory, 'flat', bias_file = bias_file, extension = extension, fixpix = fixpix, fixfile = fixfile)
+        iraf_ccdproc(directory, 'flat', bias_file = bias_file, extension = extension, fixpix = fixpix, fixfile = fixfile)
         # Create master Flat file
-        #iraf_flatcombine(directory, response_sample = '*', fit_order = 60)
+        iraf_flatcombine(directory, response_sample = '*', fit_order = 60)
         # Check that the master Flat file has no 0's
-        #check_0(directory + '/Flat_norm.fits')
+        check_0(directory + '/Flat_norm.fits')
         # Bias and Flat correct the science and lamps
         iraf_ccdproc(directory, objecto,  bias_file = bias_file, flat_file = directory + '/Flat_norm.fits', extension = extension, fixpix = fixpix, fixfile = fixfile)
         iraf_ccdproc(directory, arc_name, bias_file = bias_file, flat_file = directory + '/Flat_norm.fits', extension = extension, fixpix = fixpix, fixfile = fixfile)
