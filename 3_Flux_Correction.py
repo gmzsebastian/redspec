@@ -174,4 +174,3 @@ def example():
 
 #create_standard_sens('LTT3218' , 'LTT3218' , 'l3218', iraf_directory = 'ctionewcal')
 #iraf_standard('AT2022acyo', 'AT2022acyo', 'sens_l3218.fits')
-

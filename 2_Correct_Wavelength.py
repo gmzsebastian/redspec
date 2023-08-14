@@ -486,3 +486,11 @@ def example():
 #best_cenwave, best_pix_scale = test_solution('AT2022acyo', 6929.480875255485, 1.9787042418282716, bright_lines = [6096.1631, 6266.4951, 6382.9912, 6506.5278, 6678.1489, 7438.8979, 7723.7598, 8118.5488], arc_name = 'comp')
 #wavelength_solution('AT2022acyo', 'AT2022acyo', best_cenwave , best_pix_scale, arc_name = 'comp', min_wave = 5500, max_wave = 8500)
 
+# APO Kosmos
+#best_cenwave, best_pix_scale = test_solution('AT2023clx_red', 7461.013780468766, 1.0014570611009306, bright_lines = [6402.246, 7032.413, 7245.166, 7438.898], arc_name = 'Comp')
+#wavelength_solution('AT2023clx_red', 'Object', best_cenwave , best_pix_scale, arc_name = 'Comp', min_wave = 6000, max_wave = 8000, order = 2)
+#wavelength_solution('GD109_red'    , 'Object', best_cenwave , best_pix_scale, arc_name = 'Comp', min_wave = 6000, max_wave = 8000, order = 2)
+
+#best_cenwave, best_pix_scale = test_solution('AT2023clx_blue', 5073.464648852658, 0.7468783719475975, bright_lines = [5852.488, 5881.895, 6163.594, 6266.495, 6402.246], arc_name = 'Comp')
+#wavelength_solution('AT2023clx_blue', 'Object', best_cenwave , best_pix_scale, arc_name = 'Comp', min_wave = 5500, max_wave = 8500)
+#wavelength_solution('GD109_blue'    , 'Object', best_cenwave , best_pix_scale, arc_name = 'Comp', min_wave = 5500, max_wave = 8500)

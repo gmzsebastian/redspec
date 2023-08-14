@@ -396,6 +396,4 @@ def example():
     molly_parameter('AT2018lfe', 'AT2018lfe')
     # WARNING, this function has not been tested in whiiiiile, might break a lot
 
-#all_in_one('LTT3218'  , 'LTT3218'  )
-#all_in_one('AT2022acyo', 'AT2022acyo', use_optimal = False)
-#plot_object('AT2022acyo', 'AT2022acyo', 'AT2022acyo', suffix = '', use_optimal = False)
+#all_in_one('LTT3218', 'LTT3218')

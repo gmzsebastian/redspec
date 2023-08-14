@@ -248,7 +248,7 @@ def iraf_ccdproc(directory, file_type, bias_file, flat_file = '', extension = ''
         flatcor_in = 'no'
 
     # If correcting the lamp files, do flat correction
-    elif file_type in ['lamp', 'arc', 'HeNeAr', 'henear', 'arcs', 'comp', 'Arc', 'HeArNe', 'COMP']:
+    elif file_type.replace(' ', '') in ['lamp', 'arc', 'HeNeAr', 'henear', 'arcs', 'comp', 'Comp', 'Arc', 'HeArNe', 'COMP']:
         images_in  = '@%s/lamplist%s'%(directory, extension)
         output_in  = '@%s/lamplistbiasflat'%directory
         flat       = flat_file
@@ -551,7 +551,7 @@ def iraf_apall(directory, objecto, file_type, trace_order = 3, gain_name = 'GAIN
         return
 
     # If the files are lamp files, there was no sky subtraction done
-    if file_type in ['lamp', 'arc', 'HeNeAr', 'comp', 'henear', 'arcs', 'Arc', 'HeArNe']:
+    if file_type.replace(' ', '') in ['lamp', 'arc', 'HeNeAr', 'comp', 'Comp', 'henear', 'arcs', 'Arc', 'HeArNe']:
         input_in       = '@%s/lamplistbiasflat'%directory
         output_in      = '@%s/lamplistbiasflatout'%directory
         interactive_in = 'no'
@@ -769,4 +769,9 @@ def example():
 # Goodman
 #iraf_zerocombine('bias')
 #reduce_data('AT2022acyo', 'AT2022acyo', arc_name = 'comp', flat_name = 'flat', noise_name = 'RDNOISE')
+
+# APO Kosmos
+#iraf_zerocombine('bias', datasec_key = 'CSEC11')
+#reduce_data('GD109_blue', 'Object', arc_name='Comp', flat_name = 'Flat', gain_name = 1, noise_name = 1)
+#reduce_data('GD109_red' , 'Object', arc_name='Comp', flat_name = 'Flat', gain_name = 1, noise_name = 1)
 
