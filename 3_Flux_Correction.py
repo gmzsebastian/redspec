@@ -1,4 +1,14 @@
+def def_instrument():
+    from pyraf import iraf
+    from pyraf.iraf import noao
+    from pyraf.iraf import imred
+    from pyraf.iraf import ccdred
+    from pyraf.iraf import setinstrument
+    setinstrument(instrument = 'direct', review = 'no')
+#def_instrument()
+
 from pyraf.iraf import twodspec
+from pyraf.iraf import onedspec
 from pyraf.iraf import standard
 from pyraf.iraf import sensfunc
 from pyraf.iraf import calibrate
@@ -84,8 +94,10 @@ def create_standard_sens(directory, objecto, iraf_name, iraf_directory = 'iidsca
              bandwidth   = 'INDEF',                   # Bandpass widths, if INDEF use the default values in the standard calibration file
              bandsep     = 'INDEF',                   # Bandpass separation, if INDEF use the default values in the standard calibration file
              fnuzero     = '3.68E-20',                # Absolute flux zero point
-             extinction  = '/iraf/iraf/noao/lib/onedstds/%s/%s.dat'%(iraf_directory, iraf_name), # Extinction file
-             caldir      = '/iraf/iraf/noao/lib/onedstds/%s/'%iraf_directory,                    # Directory containing calibration data
+             #extinction  = '/iraf/iraf/noao/lib/onedstds/%s/%s.dat'%(iraf_directory, iraf_name), # Extinction file
+             #caldir      = '/iraf/iraf/noao/lib/onedstds/%s/'%iraf_directory,                    # Directory containing calibration data
+             extinction  = '/Applications/IRAF.app/Contents/iraf-v218/noao/lib/onedstds/%s/%s.dat'%(iraf_directory, iraf_name), # Extinction file
+             caldir      = '/Applications/IRAF.app/Contents/iraf-v218/noao/lib/onedstds/%s/'%iraf_directory,                    # Directory containing calibration data
              observatory = ')_.observatory',          # Observatory for data
              interact    = 'yes',                     # Graphic interaction to define new bandpasses
              graphics    = 'stdgraph',                # Graphics output device

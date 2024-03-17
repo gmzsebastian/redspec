@@ -1,3 +1,12 @@
+def def_instrument():
+    from pyraf import iraf
+    from pyraf.iraf import noao
+    from pyraf.iraf import imred
+    from pyraf.iraf import ccdred
+    from pyraf.iraf import setinstrument
+    setinstrument(instrument = 'direct', review = 'no')
+#def_instrument()
+
 from astropy.io import fits
 from pyraf import iraf
 from pyraf.iraf import imred
@@ -774,4 +783,8 @@ def example():
 #iraf_zerocombine('bias', datasec_key = 'CSEC11')
 #reduce_data('GD109_blue', 'Object', arc_name='Comp', flat_name = 'Flat', gain_name = 1, noise_name = 1)
 #reduce_data('GD109_red' , 'Object', arc_name='Comp', flat_name = 'Flat', gain_name = 1, noise_name = 1)
+
+# GMOS
+#reduce_data('G191B2B'    , 'G191B2B'  , arc_name='Arc', flat_name = 'Flat', gain_name = 'GAIN', noise_name = 'RDNOISE')
+#reduce_data('AT2018cqh_A', 'AT2018cqh', arc_name='Arc', flat_name = 'Flat', gain_name = 'GAIN', noise_name = 'RDNOISE')
 

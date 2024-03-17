@@ -1,3 +1,12 @@
+def def_instrument():
+    from pyraf import iraf
+    from pyraf.iraf import noao
+    from pyraf.iraf import imred
+    from pyraf.iraf import ccdred
+    from pyraf.iraf import setinstrument
+    setinstrument(instrument = 'direct', review = 'no')
+#def_instrument()
+
 import matplotlib.pyplot as plt
 import numpy as np
 from astropy.io import fits
@@ -291,14 +300,25 @@ def wavelength_solution(directory, objecto, cenwave, pix_scale, max_wave = 99999
         iraf.hedit(images = str(name), fields = 'REFSPEC1', value = str(filename), add = 'yes', update = 'yes')
 
         # Do wavelength correction for each image
-        iraf.noao.dispcor(input = name,
-                          output = name[:-5] + "Wave.fits",
-                          linearize = 'no',
-                          database = 'database',
-                          w1 = 'INDEF',
-                          w2 = 'INDEF',
-                          dw = 'INDEF',
-                          nw = 'INDEF')
+        try:
+            iraf.noao.dispcor(input = name,
+                              output = name[:-5] + "Wave.fits",
+                              linearize = 'no',
+                              database = 'database',
+                              w1 = 'INDEF',
+                              w2 = 'INDEF',
+                              dw = 'INDEF',
+                              nw = 'INDEF')
+        except:
+            from pyraf.iraf import onedspec
+            iraf.noao.onedspec.dispcor(input = name,
+                              output = name[:-5] + "Wave.fits",
+                              linearize = 'no',
+                              database = 'database',
+                              w1 = 'INDEF',
+                              w2 = 'INDEF',
+                              dw = 'INDEF',
+                              nw = 'INDEF')
 
 def test_solution(directory, cenwave, pix_scale, bright_lines = [4471.4790, 5015.6782, 5875.6201, 6678.1489, 7503.8682], width_guess = 4, max_delta = 10, fit_range = 9, max_width = 5, arc_name = 'arc'):
     '''
@@ -491,6 +511,15 @@ def example():
 #wavelength_solution('AT2023clx_red', 'Object', best_cenwave , best_pix_scale, arc_name = 'Comp', min_wave = 6000, max_wave = 8000, order = 2)
 #wavelength_solution('GD109_red'    , 'Object', best_cenwave , best_pix_scale, arc_name = 'Comp', min_wave = 6000, max_wave = 8000, order = 2)
 
+# GMOS 400
+#best_cenwave, best_pix_scale = test_solution('G191B2B', 6488.678602056127, 1.5347941028704617, bright_lines = [6965.4307,7067.2181,7503.8691,7635.1060, 8667.9442], arc_name = 'Arc')
+#wavelength_solution('G191B2B' , 'G191B2B' , best_cenwave , best_pix_scale, arc_name = 'Arc', min_wave = 6000, max_wave = 8300)
+
+# GMOS 150
+#best_cenwave, best_pix_scale = test_solution('G191B2B', 8641.0, 3.959700562323059, bright_lines = [6965.4307,7067.2181,7503.8691,7635.1060, 8667.9442], arc_name = 'Arc')
+#wavelength_solution('G191B2B' , 'G191B2B' , best_cenwave , best_pix_scale, arc_name = 'Arc', min_wave = 6000, max_wave = 8300)
+
 #best_cenwave, best_pix_scale = test_solution('AT2023clx_blue', 5073.464648852658, 0.7468783719475975, bright_lines = [5852.488, 5881.895, 6163.594, 6266.495, 6402.246], arc_name = 'Comp')
 #wavelength_solution('AT2023clx_blue', 'Object', best_cenwave , best_pix_scale, arc_name = 'Comp', min_wave = 5500, max_wave = 8500)
 #wavelength_solution('GD109_blue'    , 'Object', best_cenwave , best_pix_scale, arc_name = 'Comp', min_wave = 5500, max_wave = 8500)
+

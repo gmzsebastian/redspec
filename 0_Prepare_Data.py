@@ -1,3 +1,12 @@
+def def_instrument():
+    from pyraf import iraf
+    from pyraf.iraf import noao
+    from pyraf.iraf import imred
+    from pyraf.iraf import ccdred
+    from pyraf.iraf import setinstrument
+    setinstrument(instrument = 'direct', review = 'no')
+#def_instrument()
+
 import numpy as np
 from astropy.io import fits
 import glob
@@ -360,7 +369,7 @@ def extract_fits_info(file_directory, variable_names, data_index = 0, header_ind
         file_list.add_row(parameters)
 
     # Save output table
-    file_list.write("Nightlog_%s.txt"%Date0, format='ascii.fixed_width', delimiter=None)
+    file_list.write("Nightlog_%s.txt"%Date0, format='ascii.fixed_width', delimiter=None, overwrite=True)
 
 def pre_prepare_data(file_directory = 'original/*.fits.fz'):
     # Import file names
@@ -410,4 +419,5 @@ def pre_prepare_data(file_directory = 'original/*.fits.fz'):
 #extract_fits_info('raw_data/*.fits', ['OBJNAME','RA','DEC','DATE-OBS','IMAGETYP','EXPTIME','DISPERSR','QUARTZ','NEON','SLIT','FILTER2','FILTER1'])
 #prepare_data(variables = ['DISPERSR'], rotate = True, crop = True, disperser = 'DISPERSR', instrument = 'Kosmos', filter_name = '', objname = 'IMAGETYP', datasec_key = 'CSEC11', biassec_key = 'BSEC11')
 
-
+#### Gemini GMOS ####
+#extract_fits_info('input/*.fits', ['OBJECT', 'OBSTYPE', 'OBSCLASS', 'EXPTIME', 'RA', 'DEC', 'WAVELENG', 'UT', 'DATE', 'DETECTOR', 'CONID', 'SHUTTER', 'FILTER1', 'FILTER2', 'GRATING', 'GAIN', 'RDNOISE', 'CCDSUM', 'GRTILT'], return_counts = False)

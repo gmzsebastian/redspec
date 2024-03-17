@@ -1,3 +1,12 @@
+def def_instrument():
+    from pyraf import iraf
+    from pyraf.iraf import noao
+    from pyraf.iraf import imred
+    from pyraf.iraf import ccdred
+    from pyraf.iraf import setinstrument
+    setinstrument(instrument = 'direct', review = 'no')
+#def_instrument()
+
 import matplotlib.pyplot as plt
 import numpy as np
 from astropy.io import fits
