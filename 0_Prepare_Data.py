@@ -7,11 +7,13 @@ def def_instrument():
     setinstrument(instrument = 'direct', review = 'no')
 #def_instrument()
 
+import os
+workdir = os.getcwd()
 import numpy as np
 from astropy.io import fits
 import glob
 from astropy.table import Table
-import os
+os.chdir(workdir)
 
 def prepare_data(file_directory = 'raw_data/*.fits', instrument = '', crop = False, rotate = False, flip = False, variables = ['DISPERSR', 'FILTER'], break_character = '-', filter_name = 'Spectroscopic2', filterkey = 'FILTER', disperser = 'DISPERSR', data_index = 0, datasec_key = 'DATASEC', biassec_key = 'BIASSEC', rotations = 3, header_index = 0, objname = 'OBJECT'):
     '''

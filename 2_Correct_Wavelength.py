@@ -7,6 +7,8 @@ def def_instrument():
     setinstrument(instrument = 'direct', review = 'no')
 #def_instrument()
 
+import os
+workdir = os.getcwd()
 import matplotlib.pyplot as plt
 import numpy as np
 from astropy.io import fits
@@ -14,9 +16,9 @@ from scipy import optimize
 import glob
 from numpy.polynomial.legendre import Legendre
 from pyraf import iraf
-import os
 from matplotlib.widgets import Slider, Button
 import subprocess
+os.chdir(workdir)
 
 def check_existence(file_name, function, verbose = True):
     '''

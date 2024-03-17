@@ -7,6 +7,8 @@ def def_instrument():
     setinstrument(instrument = 'direct', review = 'no')
 #def_instrument()
 
+import os
+workdir = os.getcwd()
 from astropy.io import fits
 from pyraf import iraf
 from pyraf.iraf import imred
@@ -23,9 +25,9 @@ from pyraf.iraf import ccdproc
 from pyraf.iraf import imarith
 from pyraf.iraf import background
 import glob
-import os
 import subprocess
 import numpy as np
+os.chdir(workdir)
 
 def check_existence(file_name, function, verbose = True):
     '''

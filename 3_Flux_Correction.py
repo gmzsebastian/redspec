@@ -7,14 +7,16 @@ def def_instrument():
     setinstrument(instrument = 'direct', review = 'no')
 #def_instrument()
 
+import os
+workdir = os.getcwd()
 from pyraf.iraf import twodspec
 from pyraf.iraf import onedspec
 from pyraf.iraf import standard
 from pyraf.iraf import sensfunc
 from pyraf.iraf import calibrate
 import glob
-import os
 import subprocess
+os.chdir(workdir)
 
 def check_existence(file_name, function, verbose = True):
     '''

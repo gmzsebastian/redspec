@@ -7,6 +7,8 @@ def def_instrument():
     setinstrument(instrument = 'direct', review = 'no')
 #def_instrument()
 
+import os
+workdir = os.getcwd()
 import matplotlib.pyplot as plt
 import numpy as np
 from astropy.io import fits
@@ -18,7 +20,7 @@ import glob
 from astropy.time import Time
 import subprocess
 from pyraf.iraf import onedspec
-import os
+os.chdir(workdir)
 
 def check_existence(file_name, function, verbose = True):
     '''
