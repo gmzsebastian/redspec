@@ -87,6 +87,16 @@ latex_elements = {
     ''',
 }
 
-# Example configuration for intersphinx: refer to the Python standard library.
-intersphinx_mapping = {'https://docs.python.org/3/': None}
-nb_execution_mode = "off"  # Disable execution for MyST-NB
+# Intersphinx configuration
+intersphinx_mapping = {
+    'python': ('https://docs.python.org/3', None)
+}
+
+# Disable execution for MyST-NB (if applicable)
+nb_execution_mode = 'off'
+
+# Add a logo to the sidebar
+html_logo = 'images/redspec_small.png'
+
+# Ensure the static path is defined correctly for custom assets
+html_static_path = ['_static', 'images']
